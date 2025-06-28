@@ -3,6 +3,8 @@
 # Aquí se definen cosas como la conexión a la base de datos, la clave secreta, etc.
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class Config:
     # Clave secreta para la app (importante para sesiones y JWT)
@@ -10,7 +12,7 @@ class Config:
 
     # URI de la base de datos (PostgreSQL en este caso)
     # Cambia los valores de usuario, contraseña, host y base de datos según tu configuración
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:gospursgo99@localhost:5432/dr_shopper_db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
     # Desactiva el seguimiento de modificaciones para ahorrar recursos
     SQLALCHEMY_TRACK_MODIFICATIONS = False

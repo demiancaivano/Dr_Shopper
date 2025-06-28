@@ -11,7 +11,8 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+if config.config_file_name:
+    fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
 
@@ -36,6 +37,23 @@ def get_engine_url():
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+
+# Import all models here for autogenerate support
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app import create_app # type: ignore
+from app.models import User, Category, Brand, Product, Review, Discount, Cart, CartItem, Address, Order, OrderItem, Payment
+
+# Only create app context if not already in one
+try:
+    _ = current_app.name  # Accede a un atributo para forzar el acceso real
+except RuntimeError:
+    # Create Flask app context only if not already in one
+    app = create_app()
+    app.app_context().push()
+
 config.set_main_option('sqlalchemy.url', get_engine_url())
 target_db = current_app.extensions['migrate'].db
 
