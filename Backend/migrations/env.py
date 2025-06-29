@@ -48,7 +48,7 @@ from app.models import User, Category, Brand, Product, Review, Discount, Cart, C
 
 # Only create app context if not already in one
 try:
-    _ = current_app.name  # Accede a un atributo para forzar el acceso real
+    _ = current_app.name  
 except RuntimeError:
     # Create Flask app context only if not already in one
     app = create_app()
