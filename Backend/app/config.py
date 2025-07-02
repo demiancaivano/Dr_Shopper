@@ -10,9 +10,8 @@ class Config:
     # Clave secreta para la app (importante para sesiones y JWT)
     SECRET_KEY = os.environ.get('SECRET_KEY') or 't@ny_Tony_ChOppEr-7-T@nuki$'
 
-    # URI de la base de datos (PostgreSQL en este caso)
-    # Cambia los valores de usuario, contraseña, host y base de datos según tu configuración
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    # URI de la base de datos (SQLite para desarrollo, PostgreSQL para producción)
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///dr_shopper.db'
 
     # Desactiva el seguimiento de modificaciones para ahorrar recursos
     SQLALCHEMY_TRACK_MODIFICATIONS = False
