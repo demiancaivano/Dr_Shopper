@@ -23,7 +23,7 @@ function Navbar({ onCartClick }) {
               placeholder="Search"
               className="flex-1 min-w-0 px-3 py-1 rounded-full bg-mariner-100 text-mariner-900 border-2 border-transparent focus:outline-none focus:border-mariner-500 focus:ring-2 focus:ring-blue-400/60 focus:shadow-2xl transition-all duration-200"
             />
-            <button className="px-4 py-1 rounded-r bg-mariner-400 text-white hover:bg-mariner-300 transition-shadow duration-200 hover:scale-105 hover:shadow-lg">
+            <button className="px-4 py-1 rounded-full bg-mariner-400 text-white hover:bg-mariner-300 transition-shadow duration-200 hover:scale-105 hover:shadow-lg ml-2">
               Search
             </button>
           </div>
@@ -84,7 +84,7 @@ function Navbar({ onCartClick }) {
             <button
               className="text-white"
               onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Abrir menú"
+              aria-label="Open Menu"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -99,7 +99,7 @@ function Navbar({ onCartClick }) {
             placeholder="Search"
             className="flex-1 min-w-0 max-w-md px-3 py-1 rounded-full bg-mariner-100 text-mariner-900 border-2 border-transparent focus:outline-none focus:border-mariner-500 focus:ring-2 focus:ring-blue-400/60 focus:shadow-2xl transition-all duration-200"
           />
-          <button className="px-4 py-1 rounded-r bg-mariner-400 text-white hover:bg-mariner-300 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">
+          <button className="px-4 py-1 rounded-full bg-mariner-400 text-white hover:bg-mariner-300 transition-shadow duration-200 hover:scale-105 hover:shadow-lg ml-2">
             Search
           </button>
         </div>
