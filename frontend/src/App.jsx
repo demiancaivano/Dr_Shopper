@@ -11,6 +11,8 @@ import Category from './pages/Category';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import NotFound from './pages/NotFound';
+import Brand from './pages/Brand';
+import Footer from './components/Footer';
 
 function App() {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
@@ -33,9 +35,11 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/category/:categoryName" element={<Category />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/brand/:brandName" element={<Brand />} />
           </Routes>
         </main>
         <CartModal isOpen={isCartModalOpen} onClose={closeCartModal} />
+        <Footer />
       </div>
     </Router>
   );

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import ItemHome from './ItemHome';
+import CardItem from './CardItem';
 
 const MobileCarousel = ({ products = [], category }) => {
   const [current, setCurrent] = useState(0);
@@ -50,7 +50,7 @@ const MobileCarousel = ({ products = [], category }) => {
             className="min-w-full snap-center flex-shrink-0"
             style={{ maxWidth: '100%' }}
           >
-            <ItemHome
+            <CardItem
               title={product.name}
               price={product.price}
               thumbnail={product.image_url}
