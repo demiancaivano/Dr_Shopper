@@ -12,22 +12,72 @@ const Category = () => {
   const { categoryName } = useParams();
   const [products, setProducts] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [allBrands, setAllBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({ min: '', max: '', brand: '' });
+  const [filters, setFilters] = useState({ min: '', max: '', brands: [] });
   const [sort, setSort] = useState({ by: 'price', order: 'asc' });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [pendingFilters, setPendingFilters] = useState(filters);
   const [pendingSort, setPendingSort] = useState(sort);
+  const [allPrices, setAllPrices] = useState({ min: 0, max: 1000 });
+  // Handler for slider (both desktop and mobile)
+  const handleSliderChange = ([newMin, newMax]) => {
+    setFilters(prev => ({ ...prev, min: newMin, max: newMax }));
+    setPage(1);
+  };
 
-  // Obtener category_id a partir del nombre y hacer fetch de productos con filtros, orden y paginación
+  // Handler for filters select and pagination
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+    setPage(1);
+  };
+
+  // Handler for sort select
+  const handleSortChange = (e) => {
+    const value = e.target.value;
+    if (value === 'price_asc') setSort({ by: 'price', order: 'asc' });
+    else if (value === 'price_desc') setSort({ by: 'price', order: 'desc' });
+    else if (value === 'rating_desc') setSort({ by: 'rating', order: 'desc' });
+    setPage(1);
+  };
+
+  // Handler for mobile slider (actualiza solo pendingFilters)
+  const handleMobileSliderChange = ([newMin, newMax]) => {
+    setPendingFilters(prev => ({ ...prev, min: newMin, max: newMax }));
+  };
+
+  // Handler for mobile filter change (actualiza solo pendingFilters)
+  const handleMobileFilterChange = (e) => {
+    const { name, value } = e.target;
+    setPendingFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handler for mobile sort change (actualiza solo pendingSort)
+  const handleMobileSortChange = (e) => {
+    const value = e.target.value;
+    if (value === 'price_asc') setPendingSort({ by: 'price', order: 'asc' });
+    else if (value === 'price_desc') setPendingSort({ by: 'price', order: 'desc' });
+    else if (value === 'rating_desc') setPendingSort({ by: 'rating', order: 'desc' });
+  };
+
+  // Reset filters and page only when category changes
+  useEffect(() => {
+    setFilters({ min: '', max: '', brands: [] });
+    setPendingFilters({ min: '', max: '', brands: [] });
+    setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryName]);
+
+  // Fetch products with filters, sort, and pagination
   useEffect(() => {
     setLoading(true);
     setError(null);
     setProducts([]);
-    // Obtener todas las categorías
+    // Get all categories
     fetch(`${API_BASE}/categories`)
       .then(res => res.json())
       .then(categories => {
@@ -40,7 +90,20 @@ const Category = () => {
           return;
         }
         const category_id = found.id;
-        // Construir query string
+        // Get price range of all products in the category (only once per category change)
+        fetch(`${API_BASE}?category_id=${category_id}`)
+          .then(res => res.json())
+          .then(data => {
+            const preciosTodos = (data.products || []).map(p => Number(p.price)).filter(p => !isNaN(p));
+            const minAll = preciosTodos.length ? Math.min(...preciosTodos) : 0;
+            const maxAll = preciosTodos.length ? Math.max(...preciosTodos) : 1000;
+            setAllPrices({ min: minAll, max: maxAll });
+            // Extract all unique brands from the category
+            const uniqueAllBrands = Array.from(new Set((data.products || []).map(p => p.brand_id && p.brand ? JSON.stringify({id: p.brand_id, name: p.brand}) : null).filter(Boolean)))
+              .map(str => JSON.parse(str));
+            setAllBrands(uniqueAllBrands);
+          });
+        // Build query string
         const params = [
           `category_id=${category_id}`,
           `per_page=${PER_PAGE}`,
@@ -48,18 +111,21 @@ const Category = () => {
           `sort_by=${sort.by}`,
           `sort_order=${sort.order}`
         ];
-        // Filtros de precio y marca
+        // Price and brand filters
         if (filters.min !== '') params.push(`min_price=${filters.min}`);
         if (filters.max !== '') params.push(`max_price=${filters.max}`);
-        if (filters.brand) params.push(`brand=${encodeURIComponent(filters.brand)}`);
+        if (filters.brands && filters.brands.length > 0) {
+          filters.brands.forEach(brandId => params.push(`brand_id=${brandId}`));
+        }
         const url = `${API_BASE}?${params.join('&')}`;
         fetch(url)
           .then(res => res.json())
           .then(data => {
             setProducts(data.products || []);
             setTotalPages(data.pages || 1);
-            // Extraer marcas únicas
-            const uniqueBrands = Array.from(new Set((data.products || []).map(p => p.brand).filter(Boolean)));
+            // Extract unique brands (with id and name)
+            const uniqueBrands = Array.from(new Set((data.products || []).map(p => p.brand_id && p.brand ? JSON.stringify({id: p.brand_id, name: p.brand}) : null).filter(Boolean)))
+              .map(str => JSON.parse(str));
             setBrands(uniqueBrands);
             setLoading(false);
           })
@@ -72,91 +138,75 @@ const Category = () => {
         setError('Error loading category list');
         setLoading(false);
       });
-  }, [categoryName, filters.min, filters.max, filters.brand, sort.by, sort.order, page]);
+  }, [categoryName, filters.min, filters.max, filters.brands, sort.by, sort.order, page]);
 
-  // Calcular el rango real de precios de los productos
-  const precios = products.map(p => Number(p.price)).filter(p => !isNaN(p));
-  const precioMin = precios.length ? Math.min(...precios) : 0;
-  const precioMax = precios.length ? Math.max(...precios) : 1000;
-  const min = filters.min !== '' ? Number(filters.min) : precioMin;
-  const max = filters.max !== '' ? Number(filters.max) : precioMax;
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
-  // Handler para el slider de rango doble
-  const handleSliderChange = ([newMin, newMax]) => {
-    setPendingFilters(prev => ({ ...prev, min: newMin, max: newMax }));
-  };
+  // Clamp for slider values
+  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+  const min = filters.min !== '' ? clamp(Number(filters.min), allPrices.min, allPrices.max) : allPrices.min;
+  const max = filters.max !== '' ? clamp(Number(filters.max), allPrices.min, allPrices.max) : allPrices.max;
 
-  // Handler para filtros select y paginación
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setPendingFilters(prev => ({ ...prev, [name]: value }));
-  };
-  const handleSortChange = (e) => {
-    const value = e.target.value;
-    if (value === 'price_asc') setPendingSort({ by: 'price', order: 'asc' });
-    else if (value === 'price_desc') setPendingSort({ by: 'price', order: 'desc' });
-    else if (value === 'rating_desc') setPendingSort({ by: 'rating', order: 'desc' });
-  };
-
-  // Handler para paginación
-  const goToPage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
-  };
-
-  // Aplicar filtros en mobile
+  // Apply filters on mobile (solo actualiza sort y cierra modal)
   const applyMobileFilters = () => {
-    setFilters(pendingFilters);
     setSort(pendingSort);
-    setPage(1);
     setShowMobileFilters(false);
   };
 
-  // Render de los filtros (compartido entre sidebar y modal mobile)
-  const FiltersContent = ({ filtersState, sortState, onFilterChange, onSortChange, onSliderChange, onApply, isMobile }) => (
+  // Estado local temporal para el slider de desktop
+  const [desktopPriceRange, setDesktopPriceRange] = useState([0, 1000]);
+  // Estado local temporal para el slider de mobile
+  const [mobilePriceRange, setMobilePriceRange] = useState([0, 1000]);
+
+  // Sincronizar ambos sliders con allPrices cuando cambian
+  useEffect(() => {
+    if (
+      typeof allPrices.min === 'number' &&
+      typeof allPrices.max === 'number' &&
+      allPrices.max > allPrices.min
+    ) {
+      setDesktopPriceRange([allPrices.min, allPrices.max]);
+      setMobilePriceRange([allPrices.min, allPrices.max]);
+    }
+  }, [allPrices.min, allPrices.max, categoryName]);
+
+  // Handler para aplicar el filtro de precios en desktop
+  const applyDesktopPriceFilter = () => {
+    setFilters(prev => ({ ...prev, min: desktopPriceRange[0], max: desktopPriceRange[1] }));
+    setPage(1);
+  };
+
+  // Render filters (shared between sidebar and mobile modal)
+  const FiltersContent = ({ filtersState, sortState, onFilterChange, onSortChange, onSliderChange, onSliderAfterChange, onApply, isMobile }) => (
     <div>
       <div className="mb-3">
-        <label className="block text-sm mb-2 text-white">Price range</label>
-        <div className="flex flex-col items-center w-full">
-          <div className="w-full flex flex-row items-center justify-between mb-2">
-            <span className="text-xs text-white">€{filtersState.min !== '' ? filtersState.min : precioMin}</span>
-            <span className="text-xs text-white">€{filtersState.max !== '' ? filtersState.max : precioMax}</span>
-          </div>
-          <Slider
-            range
-            min={precioMin}
-            max={precioMax}
-            value={[
-              filtersState.min !== '' ? Number(filtersState.min) : precioMin,
-              filtersState.max !== '' ? Number(filtersState.max) : precioMax
-            ]}
-            onChange={onSliderChange}
-            allowCross={false}
-            trackStyle={[{ backgroundColor: '#60a5fa' }]}
-            handleStyle={[
-              { borderColor: '#60a5fa', backgroundColor: '#fff' },
-              { borderColor: '#60a5fa', backgroundColor: '#fff' }
-            ]}
-            railStyle={{ backgroundColor: '#1e293b' }}
-          />
-          <div className="w-full flex justify-between mt-1">
-            <span className="text-xs text-white">€{precioMin}</span>
-            <span className="text-xs text-white">€{precioMax}</span>
-          </div>
-        </div>
-      </div>
-      <div className="mb-3">
-        <label className="block text-sm mb-1 text-white">Brand</label>
-        <select
-          name="brand"
-          value={filtersState.brand}
-          onChange={onFilterChange}
-          className="w-full border rounded px-2 py-1 text-blue-900 bg-white focus:bg-white focus:border-blue-400"
-        >
-          <option value="">All</option>
-          {brands.map(brand => (
-            <option key={brand} value={brand}>{brand}</option>
+        <label className="block text-sm mb-1 text-white">Brands</label>
+        <div className="flex flex-col gap-1">
+          {allBrands.map(brand => (
+            <label key={brand.id} className="flex items-center gap-2 text-blue-900 bg-white rounded px-2 py-1 cursor-pointer">
+              <input
+                type="checkbox"
+                value={brand.id}
+                checked={filtersState.brands && filtersState.brands.includes(brand.id.toString())}
+                onChange={e => {
+                  const checked = e.target.checked;
+                  const value = e.target.value;
+                  let newBrands = filtersState.brands ? [...filtersState.brands] : [];
+                  if (checked) {
+                    if (!newBrands.includes(value)) newBrands.push(value);
+                  } else {
+                    newBrands = newBrands.filter(b => b !== value);
+                  }
+                  onFilterChange({ target: { name: 'brands', value: newBrands } });
+                }}
+              />
+              {brand.name}
+            </label>
           ))}
-        </select>
+        </div>
       </div>
       <div className="mb-3">
         <label className="block text-sm mb-1 text-white">Order by</label>
@@ -184,12 +234,12 @@ const Category = () => {
 
   return (
     <div className="container mx-auto px-4 flex flex-col gap-6 mt-6">
-      {/* Banner ocupa todo el ancho */}
+      {/* Banner occupies full width */}
       <h1 className="font-bold text-3xl text-center text-white">{categoryName}</h1>
       <div className="w-full mb-4">
         <Banner />
       </div>
-      {/* Mobile: botón para mostrar filtros */}
+      {/* Mobile: button to show filters */}
       <div className="block lg:hidden mb-4">
         <button
           className="w-full bg-blue-900 text-white py-2 rounded font-semibold"
@@ -201,7 +251,7 @@ const Category = () => {
         >
           Show filters
         </button>
-        {/* Modal/menú de filtros mobile */}
+        {/* Modal/menu for mobile filters */}
         {showMobileFilters && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
             <div className="bg-blue-900 rounded-lg shadow p-6 w-11/12 max-w-md relative">
@@ -213,34 +263,96 @@ const Category = () => {
                 ×
               </button>
               <h2 className="text-lg font-semibold mb-4 text-white">Filters</h2>
+              {/* Slider de precios dentro del modal, usando estado temporal local */}
+              <div className="mb-4">
+                <label className="block text-sm mb-2 text-white">Price range</label>
+                {(typeof allPrices.min === 'number' && typeof allPrices.max === 'number' && allPrices.max > allPrices.min) && (
+                  <Slider
+                    range
+                    min={Math.floor(allPrices.min)}
+                    max={Math.ceil(allPrices.max)}
+                    step={1}
+                    value={mobilePriceRange.map(v => Math.round(v))}
+                    onChange={vals => setMobilePriceRange(vals.map(v => Math.round(v)))}
+                    allowCross={false}
+                    trackStyle={[{ backgroundColor: '#60a5fa' }]}
+                    handleStyle={[
+                      { borderColor: '#60a5fa', backgroundColor: '#fff' },
+                      { borderColor: '#60a5fa', backgroundColor: '#fff' }
+                    ]}
+                    railStyle={{ backgroundColor: '#1e293b' }}
+                  />
+                )}
+                <div className="flex justify-between w-full max-w-md mt-2">
+                  <span className="text-xs text-white">€{Math.round(mobilePriceRange[0])}</span>
+                  <span className="text-xs text-white">€{Math.round(mobilePriceRange[1])}</span>
+                </div>
+              </div>
               <FiltersContent
                 filtersState={pendingFilters}
                 sortState={pendingSort}
-                onFilterChange={handleFilterChange}
-                onSortChange={handleSortChange}
-                onSliderChange={handleSliderChange}
-                onApply={applyMobileFilters}
+                onFilterChange={handleMobileFilterChange}
+                onSortChange={handleMobileSortChange}
+                onSliderChange={handleMobileSliderChange}
+                onSliderAfterChange={null}
+                onApply={() => {
+                  setFilters(prev => ({ ...prev, min: mobilePriceRange[0], max: mobilePriceRange[1] }));
+                  setSort(pendingSort);
+                  setPage(1);
+                  setShowMobileFilters(false);
+                }}
                 isMobile={true}
               />
             </div>
           </div>
         )}
       </div>
-      {/* Layout principal: sidebar a la izquierda en desktop, filtros arriba en mobile */}
+      {/* Main layout: sidebar on the left on desktop, filters above on mobile */}
       <div className="flex flex-col lg:flex-row gap-6 w-full">
-        {/* Sidebar de filtros (solo visible en desktop) */}
+        {/* Sidebar for filters (only visible on desktop) */}
         <aside className="hidden lg:block w-full lg:w-1/4 bg-blue-900 rounded-lg shadow p-4 mb-4 lg:mb-0 text-white" style={{ alignSelf: "flex-start" }}>
           <h2 className="text-lg font-semibold mb-4 text-white">Filters</h2>
+          {/* Price range slider for desktop */}
+          <div className="mb-4">
+            <label className="block text-sm mb-2 text-white">Price range</label>
+            {(typeof allPrices.min === 'number' && typeof allPrices.max === 'number' && allPrices.max > allPrices.min) && (
+              <Slider
+                range
+                min={Math.floor(allPrices.min)}
+                max={Math.ceil(allPrices.max)}
+                step={1}
+                value={desktopPriceRange.map(v => Math.round(v))}
+                onChange={vals => setDesktopPriceRange(vals.map(v => Math.round(v)))}
+                onAfterChange={vals => {
+                  setFilters(prev => ({ ...prev, min: Math.round(vals[0]), max: Math.round(vals[1]) }));
+                  setPage(1);
+                }}
+                allowCross={false}
+                trackStyle={[{ backgroundColor: '#60a5fa' }]}
+                handleStyle={[
+                  { borderColor: '#60a5fa', backgroundColor: '#fff' },
+                  { borderColor: '#60a5fa', backgroundColor: '#fff' }
+                ]}
+                railStyle={{ backgroundColor: '#1e293b' }}
+              />
+            )}
+            <div className="flex justify-between w-full max-w-md mt-2">
+              <span className="text-xs text-white">€{Math.round(desktopPriceRange[0])}</span>
+              <span className="text-xs text-white">€{Math.round(desktopPriceRange[1])}</span>
+            </div>
+            {/* No apply button in desktop */}
+          </div>
           <FiltersContent
             filtersState={filters}
             sortState={sort}
-            onFilterChange={e => { setFilters(prev => ({ ...prev, [e.target.name]: e.target.value })); setPage(1); }}
-            onSortChange={e => { const value = e.target.value; if (value === 'price_asc') setSort({ by: 'price', order: 'asc' }); else if (value === 'price_desc') setSort({ by: 'price', order: 'desc' }); else if (value === 'rating_desc') setSort({ by: 'rating', order: 'desc' }); setPage(1); }}
-            onSliderChange={([newMin, newMax]) => { setFilters(prev => ({ ...prev, min: newMin, max: newMax })); setPage(1); }}
+            onFilterChange={handleFilterChange}
+            onSortChange={handleSortChange}
+            onSliderChange={handleSliderChange}
+            onSliderAfterChange={null}
             isMobile={false}
           />
         </aside>
-        {/* Productos */}
+        {/* Products */}
         <main className="flex-1">
           {loading ? (
             <div className="text-center py-10">Loading products...</div>
@@ -286,7 +398,7 @@ const Category = () => {
                   />
                 ))}
               </div>
-              {/* Controles de paginación */}
+              {/* Pagination controls */}
               <div className="flex justify-center items-center gap-2 mt-8">
                 <button
                   className="px-3 py-1 rounded bg-blue-900 text-white disabled:opacity-50"

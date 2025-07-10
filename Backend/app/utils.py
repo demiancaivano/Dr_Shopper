@@ -2,6 +2,8 @@ from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from flask import jsonify, request
 from app.models import User
 from functools import wraps
+import secrets
+from datetime import datetime, timedelta
 
 def admin_required():
     """
@@ -168,3 +170,11 @@ def format_success_response(data, message="Operación exitosa", status_code=200)
         'data': data
     }
     return jsonify(response), status_code
+
+def generate_token(length=32):
+    """Generate a secure URL-safe token."""
+    return secrets.token_urlsafe(length)
+
+def get_expiration(hours=1):
+    """Get a datetime object for expiration (default: 1 hour from now)."""
+    return datetime.utcnow() + timedelta(hours=hours)

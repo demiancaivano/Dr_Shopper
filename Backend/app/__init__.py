@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate  # Importamos Flask-Migrate
+from flask_mail import Mail
 
 # Creamos la instancia de SQLAlchemy (ORM para la base de datos)
 db = SQLAlchemy()
@@ -16,6 +17,9 @@ jwt = JWTManager()
 
 # Creamos la instancia de Flask-Migrate (para migraciones de la base de datos)
 migrate = Migrate()
+
+# Creamos la instancia de Flask-Mail (para envío de correos electrónicos)
+mail = Mail()
 
 # Función para crear y configurar la app Flask
 def create_app():
@@ -33,6 +37,9 @@ def create_app():
 
     # Inicializamos JWT con la app
     jwt.init_app(app)
+
+    # Inicializamos Flask-Mail con la app
+    mail.init_app(app)
 
     # Habilitamos CORS para permitir peticiones desde el frontend
     CORS(app)

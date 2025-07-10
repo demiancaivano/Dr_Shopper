@@ -24,7 +24,7 @@ def get_products():
     
     # Filtros básicos
     category_id = request.args.get('category_id', type=int)
-    brand_id = request.args.get('brand_id', type=int)
+    brand_ids = request.args.getlist('brand_id', type=int)
     search = request.args.get('search', '')
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
@@ -46,8 +46,11 @@ def get_products():
     if category_id:
         query = query.filter(Product.category_id == category_id)
     
-    if brand_id:
-        query = query.filter(Product.brand_id == brand_id)
+    if brand_ids:
+        if len(brand_ids) == 1:
+            query = query.filter(Product.brand_id == brand_ids[0])
+        else:
+            query = query.filter(Product.brand_id.in_(brand_ids))
     
     if search:
         # Búsqueda en nombre y descripción
@@ -158,7 +161,7 @@ def get_products():
         'has_prev': products.has_prev,
         'filters_applied': {
             'category_id': category_id,
-            'brand_id': brand_id,
+            'brand_id': brand_ids,
             'search': search,
             'min_price': min_price,
             'max_price': max_price,

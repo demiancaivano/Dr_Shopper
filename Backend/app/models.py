@@ -19,6 +19,10 @@ class User(db.Model):
     password = db.Column(db.String(512), nullable=False)
     creation_date = db.Column(db.DateTime, server_default=func.now())             # Contraseña (encriptada), obligatoria
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    email_verification_token = db.Column(db.String(128), nullable=True)
+    reset_password_token = db.Column(db.String(128), nullable=True)
+    reset_password_token_expiration = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         # Representación legible del usuario (útil para debug)
@@ -31,7 +35,8 @@ class User(db.Model):
             'username': self.username,
             'email': self.email,
             'creation_date': self.creation_date.isoformat(),
-            'is_admin': self.is_admin
+            'is_admin': self.is_admin,
+            'email_verified': self.email_verified
         }
 
 class Category(db.Model):

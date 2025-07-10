@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Simulación de estado de login
 const isLoggedIn = true; // Cambia a true para probar "Mi Perfil"
@@ -15,6 +15,7 @@ function Navbar({ onCartClick }) {
   const [brandDropdown, setBrandDropdown] = useState(false);
   const catRef = useRef();
   const brandRef = useRef();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${API_BASE}/categories`)
@@ -31,8 +32,8 @@ function Navbar({ onCartClick }) {
       if (catRef.current && !catRef.current.contains(event.target)) setCatDropdown(false);
       if (brandRef.current && !brandRef.current.contains(event.target)) setBrandDropdown(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   return (
@@ -62,7 +63,7 @@ function Navbar({ onCartClick }) {
             <div className="relative" ref={catRef}>
               <button
                 className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
-                onClick={() => { setCatDropdown((open) => !open); setBrandDropdown(false); }}
+                onClick={e => { e.stopPropagation(); setCatDropdown((open) => !open); setBrandDropdown(false); }}
               >
                 Categories
               </button>
@@ -85,7 +86,7 @@ function Navbar({ onCartClick }) {
             <div className="relative" ref={brandRef}>
               <button
                 className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
-                onClick={() => { setBrandDropdown((open) => !open); setCatDropdown(false); }}
+                onClick={e => { e.stopPropagation(); setBrandDropdown((open) => !open); setCatDropdown(false); }}
               >
                 Brands
               </button>
@@ -162,7 +163,7 @@ function Navbar({ onCartClick }) {
                 className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
                 onClick={() => { setBrandDropdown((open) => !open); setCatDropdown(false); }}
               >
-                Brands
+                Brands  
               </button>
               {brandDropdown && (
                 <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
@@ -249,14 +250,17 @@ function Navbar({ onCartClick }) {
                 {catDropdown && (
                   <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
                     {categories.map(cat => (
-                      <Link
+                      <div
                         key={cat.id}
-                        to={`/category/${encodeURIComponent(cat.name)}`}
-                        className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
-                        onClick={() => { setCatDropdown(false); setMenuOpen(false); }}
+                        className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700 cursor-pointer"
+                        onClick={() => {
+                          setCatDropdown(false);
+                          setMenuOpen(false);
+                          navigate(`/category/${encodeURIComponent(cat.name)}`);
+                        }}
                       >
                         {cat.name}
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -272,14 +276,17 @@ function Navbar({ onCartClick }) {
                 {brandDropdown && (
                   <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
                     {brands.map(brand => (
-                      <Link
+                      <div
                         key={brand.id}
-                        to={`/brand/${encodeURIComponent(brand.name)}`}
-                        className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
-                        onClick={() => { setBrandDropdown(false); setMenuOpen(false); }}
+                        className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700 cursor-pointer"
+                        onClick={() => {
+                          setBrandDropdown(false);
+                          setMenuOpen(false);
+                          navigate(`/brand/${encodeURIComponent(brand.name)}`);
+                        }}
                       >
                         {brand.name}
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 )}
