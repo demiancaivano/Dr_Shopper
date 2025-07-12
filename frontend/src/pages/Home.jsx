@@ -75,11 +75,11 @@ function Home() {
           style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}
         >
           {blocks.map(block => (
-            <div key={block.id} className="bg-white rounded-lg shadow p-4 flex flex-col items-center border border-gray-200 h-full mb-2">
+            <div key={block.id} className="bg-white rounded-lg shadow p-4 sm:p-4 flex flex-col items-center border border-gray-200 h-full mb-2 sm:min-h-[500px] min-h-[350px]">
               <h2 className="text-xl font-semibold text-mariner-900 mb-2 text-center">
                 <Link to={`/category/${encodeURIComponent(block.name)}`} className="hover:underline text-mariner-900">{block.name}</Link>
               </h2>
-              <div className="w-full">
+              <div className="w-full flex-1">
                 {/* Mobile: Carrusel con flechas y scroll táctil */}
                 <div className="block sm:hidden">
                   <MobileCarousel products={block.products} category={block.name} />
@@ -89,6 +89,7 @@ function Home() {
                   {block.products.map(product => (
                     <CardItem
                       key={product.id}
+                      id={product.id}
                       title={product.name}
                       price={product.price}
                       thumbnail={product.image_url}

@@ -16,7 +16,7 @@ const Category = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({ min: '', max: '', brands: [] });
-  const [sort, setSort] = useState({ by: 'price', order: 'asc' });
+  const [sort, setSort] = useState({ by: 'rating', order: 'desc' });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -94,9 +94,9 @@ const Category = () => {
         fetch(`${API_BASE}?category_id=${category_id}`)
           .then(res => res.json())
           .then(data => {
-            const preciosTodos = (data.products || []).map(p => Number(p.price)).filter(p => !isNaN(p));
-            const minAll = preciosTodos.length ? Math.min(...preciosTodos) : 0;
-            const maxAll = preciosTodos.length ? Math.max(...preciosTodos) : 1000;
+            const allPrices = (data.products || []).map(p => Number(p.price)).filter(p => !isNaN(p));
+            const minAll = allPrices.length ? Math.min(...allPrices) : 0;
+            const maxAll = allPrices.length ? Math.max(...allPrices) : 1000;
             setAllPrices({ min: minAll, max: maxAll });
             // Extract all unique brands from the category
             const uniqueAllBrands = Array.from(new Set((data.products || []).map(p => p.brand_id && p.brand ? JSON.stringify({id: p.brand_id, name: p.brand}) : null).filter(Boolean)))

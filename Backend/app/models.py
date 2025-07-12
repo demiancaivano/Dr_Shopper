@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import validates
 from sqlalchemy import CheckConstraint
+from sqlalchemy.dialects.postgresql import ARRAY
 
 # Definimos el modelo User, que representa la tabla 'user' en la base de datos
 class User(db.Model):
@@ -97,6 +98,7 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     stock = db.Column(db.Integer, nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
+    images = db.Column(ARRAY(db.String), nullable=True)
     creation_date = db.Column(db.DateTime, server_default=func.now())
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship('Category', backref=db.backref('products', lazy=True))
@@ -143,6 +145,7 @@ class Product(db.Model):
             'discount_percentage': self.discount_percentage,
             'stock': self.stock,
             'image_url': self.image_url,
+            'images': self.images,
             'creation_date': self.creation_date.isoformat() if self.creation_date else None,
             'category_id': self.category_id,
             'category': self.category.name if self.category else None,
@@ -437,4 +440,28 @@ class Payment(db.Model):
             'transaction_id': self.transaction_id,
             'creation_date': self.creation_date.isoformat(),
             'payment_date': self.payment_date.isoformat() if self.payment_date else None
+        }
+
+class ReviewLike(db.Model):
+    __tablename__ = 'review_like'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('review_likes', lazy=True))
+    review_id = db.Column(db.Integer, db.ForeignKey('review.id'), nullable=False)
+    review = db.relationship('Review', backref=db.backref('likes', lazy=True))
+    creation_date = db.Column(db.DateTime, server_default=func.now())
+    
+    # Asegurar que un usuario solo puede dar like una vez por review
+    __table_args__ = (db.UniqueConstraint('user_id', 'review_id', name='unique_user_review_like'),)
+    
+    def __repr__(self):
+        return f'<ReviewLike {self.user_id} -> {self.review_id}>'
+    
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'review_id': self.review_id,
+            'creation_date': self.creation_date.isoformat()
         }

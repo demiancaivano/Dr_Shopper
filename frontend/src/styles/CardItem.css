@@ -13,6 +13,15 @@
     -webkit-line-clamp: 2; 
 }
 
+/* Para el modo carrusel, permitir que el título se ajuste */
+.card-item.carousel-mode h2 {
+    height: auto;
+    min-height: 40px;
+    overflow: visible;
+    display: block;
+    -webkit-line-clamp: unset;
+}
+
 .brand-ellipsis {
     white-space: nowrap;
     overflow: hidden;
@@ -43,7 +52,7 @@
 @media (min-width: 640px) {
   .carditem-img {
     width: 120px;
-    height: auto;
+    height: 120px;
   }
 }
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.models import Product, Category, Brand, Review, Discount
+from app.models import Product, Category, Brand, Review, Discount, ReviewLike
 from app import db # type: ignore
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError
@@ -53,14 +53,16 @@ def get_products():
             query = query.filter(Product.brand_id.in_(brand_ids))
     
     if search:
-        # Búsqueda en nombre y descripción
+        # Búsqueda en nombre, descripción, marca y categoría
         search_filter = f'%{search}%'
         query = query.filter(
             db.or_(
                 Product.name.ilike(search_filter),
-                Product.description.ilike(search_filter)
+                Product.description.ilike(search_filter),
+                Brand.name.ilike(search_filter),
+                Category.name.ilike(search_filter)
             )
-        )
+        ).join(Brand, Product.brand_id == Brand.id, isouter=True).join(Category, Product.category_id == Category.id, isouter=True)
     
     if min_price is not None:
         query = query.filter(Product.price >= min_price)
@@ -184,7 +186,20 @@ def get_product(product_id):
     if not product:
         return jsonify({'message': 'Producto no encontrado'}), 404
     
-    return jsonify(product.serialize()), 200
+    # Calcular estadísticas de rating
+    rating_stats = db.session.query(
+        func.avg(Review.rating).label('average'),
+        func.count(Review.id).label('count')
+    ).filter_by(product_id=product_id).first()
+    
+    # Serializar el producto y agregar las estadísticas de rating
+    product_data = product.serialize()
+    product_data['rating'] = {
+        'average': float(rating_stats.average or 0),
+        'count': int(rating_stats.count or 0)
+    }
+    
+    return jsonify(product_data), 200
 
 @product_bp.route('/', methods=['POST'])
 @jwt_required()
@@ -221,6 +236,9 @@ def create_product():
         new_product.price = float(data['price'])
         new_product.stock = int(data['stock'])
         new_product.image_url = data.get('image_url', '')
+        images = data.get('images')
+        if images is not None:
+            new_product.images = images
         new_product.category_id = data['category_id']
         new_product.brand_id = data.get('brand_id')
         new_product.discount_percentage = float(data.get('discount_percentage', 0.0))
@@ -268,6 +286,8 @@ def update_product(product_id):
             product.stock = int(data['stock'])
         if 'image_url' in data:
             product.image_url = data['image_url']
+        if 'images' in data:
+            product.images = data['images']
         if 'category_id' in data:
             # Verificar que la categoría existe
             category = Category.query.get(data['category_id'])
@@ -318,6 +338,43 @@ def delete_product(product_id):
     except IntegrityError:
         db.session.rollback()
         return jsonify({'message': 'No se puede eliminar el producto porque está en uso'}), 400
+
+@product_bp.route('/search/autocomplete', methods=['GET'])
+def search_autocomplete():
+    """Búsqueda de autocompletado para productos, categorías y marcas"""
+    query = request.args.get('q', '').strip()
+    
+    if len(query) < 2:
+        return jsonify({
+            'products': [],
+            'categories': [],
+            'brands': []
+        }), 200
+    
+    # Buscar productos (máximo 4)
+    products = Product.query.filter(
+        Product.is_active == True,
+        db.or_(
+            Product.name.ilike(f'%{query}%'),
+            Product.description.ilike(f'%{query}%')
+        )
+    ).limit(4).all()
+    
+    # Buscar categorías que coincidan
+    categories = Category.query.filter(
+        Category.name.ilike(f'%{query}%')
+    ).limit(2).all()
+    
+    # Buscar marcas que coincidan
+    brands = Brand.query.filter(
+        Brand.name.ilike(f'%{query}%')
+    ).limit(2).all()
+    
+    return jsonify({
+        'products': [product.serialize() for product in products],
+        'categories': [category.serialize() for category in categories],
+        'brands': [brand.serialize() for brand in brands]
+    }), 200
 
 @product_bp.route('/stats', methods=['GET'])
 def get_product_stats():
@@ -653,9 +710,9 @@ def get_product_reviews(product_id):
             query = query.order_by(Review.rating.asc(), Review.creation_date.desc())
     elif sort_by == 'helpful':
         if sort_order == 'desc':
-            query = query.order_by(Review.is_helpful.desc(), Review.creation_date.desc())
+            query = query.order_by(Review.is_helpful.desc().nullslast(), Review.creation_date.desc())
         else:
-            query = query.order_by(Review.is_helpful.asc(), Review.creation_date.desc())
+            query = query.order_by(Review.is_helpful.asc().nullslast(), Review.creation_date.desc())
     else:  # creation_date por defecto
         if sort_order == 'desc':
             query = query.order_by(Review.creation_date.desc())
@@ -666,14 +723,19 @@ def get_product_reviews(product_id):
     
     # Calcular estadísticas de reviews
     stats = db.session.query(
-        func.avg(Review.rating).label('avg_rating'),
-        func.count(Review.id).label('total_reviews'),
-        func.sum(func.case([(Review.rating == 5, 1)], else_=0)).label('five_star'),
-        func.sum(func.case([(Review.rating == 4, 1)], else_=0)).label('four_star'),
-        func.sum(func.case([(Review.rating == 3, 1)], else_=0)).label('three_star'),
-        func.sum(func.case([(Review.rating == 2, 1)], else_=0)).label('two_star'),
-        func.sum(func.case([(Review.rating == 1, 1)], else_=0)).label('one_star')
-    ).filter_by(product_id=product_id).first()
+    func.avg(Review.rating).label('avg_rating'),
+    func.count(Review.id).label('total_reviews')
+).filter_by(product_id=product_id).first()
+    
+    # Calcular distribución de ratings manualmente
+    all_reviews = Review.query.filter_by(product_id=product_id).all()
+    rating_distribution = {
+        '5_star': len([r for r in all_reviews if r.rating == 5]),
+        '4_star': len([r for r in all_reviews if r.rating == 4]),
+        '3_star': len([r for r in all_reviews if r.rating == 3]),
+        '2_star': len([r for r in all_reviews if r.rating == 2]),
+        '1_star': len([r for r in all_reviews if r.rating == 1])
+    }
     
     return jsonify({
         'reviews': [review.serialize() for review in reviews.items],
@@ -683,13 +745,7 @@ def get_product_reviews(product_id):
         'stats': {
             'average_rating': float(stats.avg_rating or 0),
             'total_reviews': int(stats.total_reviews or 0),
-            'rating_distribution': {
-                '5_star': int(stats.five_star or 0),
-                '4_star': int(stats.four_star or 0),
-                '3_star': int(stats.three_star or 0),
-                '2_star': int(stats.two_star or 0),
-                '1_star': int(stats.one_star or 0)
-            }
+            'rating_distribution': rating_distribution
         }
     }), 200
 
@@ -805,7 +861,7 @@ def delete_review(review_id):
 @product_bp.route('/reviews/<int:review_id>/helpful', methods=['POST'])
 @jwt_required()
 def mark_review_helpful(review_id):
-    """Marcar una review como útil"""
+    """Marcar/desmarcar una review como útil (toggle)"""
     current_user_id = get_jwt_identity()
     
     review = Review.query.get(review_id)
@@ -814,20 +870,56 @@ def mark_review_helpful(review_id):
     
     # Verificar que el usuario no está marcando su propia review como útil
     if review.user_id == current_user_id:
-        return jsonify({'message': 'No puedes marcar tu propia review como útil'}), 400
+        return jsonify({'message': 'You cannot mark your own review as helpful'}), 400
     
     try:
-        review.is_helpful += 1
+        # Buscar si el usuario ya dio like a esta review
+        existing_like = ReviewLike.query.filter_by(
+            user_id=current_user_id, 
+            review_id=review_id
+        ).first()
+        
+        if existing_like:
+            # Si ya dio like, quitarlo (unlike)
+            db.session.delete(existing_like)
+            review.is_helpful = max(0, review.is_helpful - 1)  # No permitir valores negativos
+            action = 'unliked'
+        else:
+            # Si no dio like, agregarlo (like)
+            new_like = ReviewLike()
+            new_like.user_id = current_user_id
+            new_like.review_id = review_id
+            db.session.add(new_like)
+            review.is_helpful += 1
+            action = 'liked'
+        
         db.session.commit()
         
         return jsonify({
-            'message': 'Review marcada como útil',
-            'helpful_count': review.is_helpful
+            'message': f'Review {action} successfully',
+            'helpful_count': review.is_helpful,
+            'action': action
         }), 200
         
     except IntegrityError:
         db.session.rollback()
-        return jsonify({'message': 'Error al marcar la review como útil'}), 400
+        return jsonify({'message': 'Error processing like'}), 400
+
+@product_bp.route('/reviews/user/liked', methods=['GET'])
+@jwt_required()
+def get_user_liked_reviews():
+    """Obtener las reviews que el usuario actual ha marcado como útiles"""
+    current_user_id = get_jwt_identity()
+    
+    # Obtener todas las reviews que el usuario ha likeado
+    liked_reviews = ReviewLike.query.filter_by(user_id=current_user_id).all()
+    
+    # Extraer solo los IDs de las reviews likeadas
+    liked_review_ids = [like.review_id for like in liked_reviews]
+    
+    return jsonify({
+        'liked_review_ids': liked_review_ids
+    }), 200
 
 @product_bp.route('/reviews/user/<int:user_id>', methods=['GET'])
 def get_user_reviews(user_id):

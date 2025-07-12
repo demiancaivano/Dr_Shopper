@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-// Simulación de estado de login
-const isLoggedIn = true; // Cambia a true para probar "Mi Perfil"
-const isAdmin = false; // Cambia a true para probar el botón Admin
+import AuthContext from '../context/AuthContext';
+import SearchAutocomplete from './SearchAutocomplete';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
 
@@ -13,86 +11,207 @@ function Navbar({ onCartClick }) {
   const [brands, setBrands] = useState([]);
   const [catDropdown, setCatDropdown] = useState(false);
   const [brandDropdown, setBrandDropdown] = useState(false);
+  const [userDropdown, setUserDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const catRef = useRef();
   const brandRef = useRef();
+  const userRef = useRef();
   const navigate = useNavigate();
+  const { state, logout } = useContext(AuthContext);
 
   useEffect(() => {
     fetch(`${API_BASE}/categories`)
       .then(res => res.json())
-      .then(data => setCategories(data || []));
+      .then(data => {
+        setCategories(data || []);
+      })
+      .catch(error => {
+        setCategories([]);
+      });
     fetch(`${API_BASE}/brands`)
       .then(res => res.json())
-      .then(data => setBrands(data || []));
+      .then(data => {
+        setBrands(data || []);
+      })
+      .catch(error => {
+        setBrands([]);
+      });
   }, []);
 
-  // Cerrar dropdowns al hacer click fuera
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (catRef.current && !catRef.current.contains(event.target)) setCatDropdown(false);
       if (brandRef.current && !brandRef.current.contains(event.target)) setBrandDropdown(false);
+      if (userRef.current && !userRef.current.contains(event.target)) setUserDropdown(false);
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    setUserDropdown(false);
+    setMenuOpen(false);
+    navigate('/');
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search/${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setMenuOpen(false);
+    }
+  };
+
+  const UserMenu = ({ isMobile = false }) => {
+    if (state.isAuthenticated) {
+      return (
+        <div className={`relative ${isMobile ? '' : ''}`} ref={userRef}>
+          <button
+            className={`text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg ${isMobile ? 'text-lg w-full text-left mt-2' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setUserDropdown(!userDropdown);
+              setCatDropdown(false);
+              setBrandDropdown(false);
+            }}
+          >
+            {state.user?.username || 'My Profile'}
+            <svg className={`inline ml-1 w-4 h-4 ${isMobile ? 'float-right' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {userDropdown && (
+            <div className={`absolute ${isMobile ? 'left-0' : 'right-0'} mt-2 w-48 bg-white rounded shadow-lg z-50`}>
+              <Link
+                to="/profile"
+                className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
+                onClick={() => {
+                  setUserDropdown(false);
+                  if (isMobile) setMenuOpen(false);
+                }}
+              >
+                My Profile
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <>
+          <Link 
+            to="/login" 
+            className={`text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg ${isMobile ? 'text-lg' : ''}`}
+            onClick={() => isMobile && setMenuOpen(false)}
+          >
+            Login
+          </Link>
+          <Link 
+            to="/register" 
+            className={`text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg ${isMobile ? 'text-lg' : ''}`}
+            onClick={() => isMobile && setMenuOpen(false)}
+          >
+            Register
+          </Link>
+        </>
+      );
+    }
+  };
+
   return (
     <nav className="w-full flex justify-center py-2 px-2">
       <div className="w-full max-w-6xl bg-gradient-to-r from-indigo-950 to-indigo-700 md:rounded-xl shadow-[0_4px_24px_0_rgba(83,151,221,0.25)] border-b-2 border-sky-800 px-3 py-2 flex flex-col gap-y-2 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
-        {/* Fila principal: mobile/tablet/desktop */}
+        {/* Main row: mobile/tablet/desktop */}
         <div className="w-full flex items-center justify-between lg:justify-start lg:gap-4">
           {/* Logo */}
-          <div className="font-montserrat text-lg font-bold text-white whitespace-nowrap lg:mr-4">
+          <div className="font-montserrat text-base font-bold text-white whitespace-nowrap lg:text-lg lg:mr-4">
             <Link to="/">Dr. Shopper</Link>
           </div>
-          {/* lg: search input y botón */}
-          <div className="hidden lg:flex items-center flex-1 max-w-lg ml-2 mr-2">
-            <input
-              type="text"
-              placeholder="Search"
-              className="flex-1 min-w-0 px-3 py-1 rounded-full bg-mariner-100 text-mariner-900 border-2 border-transparent focus:outline-none focus:border-mariner-500 focus:ring-2 focus:ring-blue-400/60 focus:shadow-2xl transition-all duration-200"
+          
+          {/* Desktop navigation */}
+          <div className="hidden lg:flex items-center gap-4">
+            {/* Search bar */}
+            <SearchAutocomplete
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder="Search products..."
+              className="w-96 px-4 py-2 rounded-lg text-mariner-900 placeholder-mariner-500 focus:outline-none focus:ring-2 focus:ring-mariner-300"
             />
-            <button className="px-4 py-1 rounded-full bg-mariner-400 text-white hover:bg-mariner-300 transition-shadow duration-200 hover:scale-105 hover:shadow-lg ml-2">
-              Search
-            </button>
           </div>
-          {/* lg: links y cart en orden, alineados a la derecha */}
+
+          {/* Mobile search */}
+          <div className="flex-1 max-w-xs mx-2 lg:hidden">
+            <SearchAutocomplete
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder="Search..."
+              className="w-full px-3 py-1.5 rounded-lg text-mariner-900 placeholder-mariner-500 focus:outline-none focus:ring-2 focus:ring-mariner-300 text-sm"
+            />
+          </div>
+
+          {/* Desktop user menu, categories, brands y cart */}
           <div className="hidden lg:flex items-center gap-4 ml-auto">
-            <Link to="/" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">Home</Link>
-            {/* Categories Dropdown */}
+            {/* Categories dropdown */}
             <div className="relative" ref={catRef}>
               <button
-                className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
-                onClick={e => { e.stopPropagation(); setCatDropdown((open) => !open); setBrandDropdown(false); }}
+                className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg flex items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCatDropdown(!catDropdown);
+                  setBrandDropdown(false);
+                  setUserDropdown(false);
+                }}
               >
                 Categories
+                <svg className={`w-4 h-4 transition-transform ${catDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
               {catDropdown && (
-                <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
-                  {categories.map(cat => (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {categories.map((category) => (
                     <Link
-                      key={cat.id}
-                      to={`/category/${encodeURIComponent(cat.name)}`}
+                      key={category.id}
+                      to={`/category/${encodeURIComponent(category.name)}`}
                       className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
                       onClick={() => setCatDropdown(false)}
                     >
-                      {cat.name}
+                      {category.name}
                     </Link>
                   ))}
                 </div>
               )}
             </div>
-            {/* Brands Dropdown */}
+            {/* Brands dropdown */}
             <div className="relative" ref={brandRef}>
               <button
-                className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
-                onClick={e => { e.stopPropagation(); setBrandDropdown((open) => !open); setCatDropdown(false); }}
+                className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg flex items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBrandDropdown(!brandDropdown);
+                  setCatDropdown(false);
+                  setUserDropdown(false);
+                }}
               >
                 Brands
+                <svg className={`w-4 h-4 transition-transform ${brandDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
               {brandDropdown && (
-                <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
-                  {brands.map(brand => (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {brands.map((brand) => (
                     <Link
                       key={brand.id}
                       to={`/brand/${encodeURIComponent(brand.name)}`}
@@ -105,22 +224,7 @@ function Navbar({ onCartClick }) {
                 </div>
               )}
             </div>
-            {isLoggedIn ? (
-              <Link to="/profile" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">My Profile</Link>
-            ) : (
-              <>
-                <Link to="/login" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">Login</Link>
-                <Link to="/register" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">Register</Link>
-              </>
-            )}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="flex items-center gap-1 bg-mariner-400 hover:bg-mariner-300 text-white px-3 py-1 rounded transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg font-semibold"
-              >
-                Admin
-              </Link>
-            )}
+            <UserMenu />
             <button
               onClick={onCartClick}
               className="flex items-center gap-1 bg-mariner-400 hover:bg-mariner-300 text-white px-3 py-1 rounded transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
@@ -131,83 +235,14 @@ function Navbar({ onCartClick }) {
               <span className="hidden sm:inline">Cart</span>
             </button>
           </div>
-          {/* md: links y cart */}
-          <div className="hidden md:flex lg:hidden items-center gap-4 ml-auto">
-            <Link to="/" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">Home</Link>
-            {/* Categories Dropdown */}
-            <div className="relative" ref={catRef}>
-              <button
-                className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
-                onClick={() => { setCatDropdown((open) => !open); setBrandDropdown(false); }}
-              >
-                Categories
-              </button>
-              {catDropdown && (
-                <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
-                  {categories.map(cat => (
-                    <Link
-                      key={cat.id}
-                      to={`/category/${encodeURIComponent(cat.name)}`}
-                      className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
-                      onClick={() => setCatDropdown(false)}
-                    >
-                      {cat.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            {/* Brands Dropdown */}
-            <div className="relative" ref={brandRef}>
-              <button
-                className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
-                onClick={() => { setBrandDropdown((open) => !open); setCatDropdown(false); }}
-              >
-                Brands  
-              </button>
-              {brandDropdown && (
-                <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
-                  {brands.map(brand => (
-                    <Link
-                      key={brand.id}
-                      to={`/brand/${encodeURIComponent(brand.name)}`}
-                      className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
-                      onClick={() => setBrandDropdown(false)}
-                    >
-                      {brand.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            {isLoggedIn ? (
-              <Link to="/profile" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">My Profile</Link>
-            ) : (
-              <>
-                <Link to="/login" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">Login</Link>
-                <Link to="/register" className="text-white hover:text-mariner-200 transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg">Register</Link>
-              </>
-            )}
-            {isAdmin && (
-              <Link to="/admin" className="text-white bg-red-600 hover:bg-red-500 px-3 py-1 rounded transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg font-semibold">Admin</Link>
-            )}
+          
+          {/* Mobile: cart and burger */}
+          <div className="flex items-center gap-2 lg:hidden">
             <button
               onClick={onCartClick}
-              className="flex items-center gap-1 bg-mariner-400 hover:bg-mariner-300 text-white px-3 py-1 rounded transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
+              className="flex items-center gap-1 bg-mariner-400 hover:bg-mariner-300 text-white px-2 py-1 rounded transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007.5 17h9a1 1 0 00.85-1.53L17 13M7 13V6a1 1 0 011-1h5a1 1 0 011 1v7" />
-              </svg>
-              <span className="hidden sm:inline">Cart</span>
-            </button>
-          </div>
-          {/* Mobile: cart y burger */}
-          <div className="flex items-center gap-2 md:hidden">
-            <button
-              onClick={onCartClick}
-              className="flex items-center gap-1 bg-mariner-400 hover:bg-mariner-300 text-white px-3 py-1 rounded transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007.5 17h9a1 1 0 00.85-1.53L17 13M7 13V6a1 1 0 011-1h5a1 1 0 011 1v7" />
               </svg>
             </button>
@@ -216,93 +251,88 @@ function Navbar({ onCartClick }) {
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Open Menu"
             >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
         </div>
-        {/* Search: mobile y md (abajo, centrado) */}
-        <div className="flex w-full items-center mt-2 sm:justify-center md:justify-center lg:hidden">
-          <input
-            type="text"
-            placeholder="Search"
-            className="flex-1 min-w-0 max-w-md px-3 py-1 rounded-full bg-mariner-100 text-mariner-900 border-2 border-transparent focus:outline-none focus:border-mariner-500 focus:ring-2 focus:ring-blue-400/60 focus:shadow-2xl transition-all duration-200"
-          />
-          <button className="px-4 py-1 rounded-full bg-mariner-400 text-white hover:bg-mariner-300 transition-shadow duration-200 hover:scale-105 hover:shadow-lg ml-2">
-            Search
-          </button>
-        </div>
-        {/* Menú móvil: links y search */}
+        
+        {/* Mobile menu: links and search */}
         {menuOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-end" onClick={() => setMenuOpen(false)}>
+          <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-end lg:hidden" onClick={() => setMenuOpen(false)}>
             <div className="w-64 h-full bg-gradient-to-b from-mariner-700 to-mariner-300 p-6 flex flex-col gap-6" onClick={e => e.stopPropagation()}>
               <button className="self-end text-2xl text-white" onClick={() => setMenuOpen(false)}>&times;</button>
-              <Link to="/" className="text-white hover:text-mariner-200 text-lg transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg" onClick={() => setMenuOpen(false)}>Home</Link>
-              {/* Categories Dropdown Mobile */}
-              <div className="relative">
+
+              {/* Mobile categories */}
+              <div className="relative" ref={catRef}>
                 <button
-                  className="text-white hover:text-mariner-200 text-lg w-full text-left mt-2"
-                  onClick={() => setCatDropdown((open) => !open)}
+                  className="text-white hover:text-mariner-200 text-lg w-full text-left flex items-center justify-between"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCatDropdown(!catDropdown);
+                    setBrandDropdown(false);
+                  }}
                 >
                   Categories
+                  <svg className={`w-4 h-4 transition-transform ${catDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
                 {catDropdown && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
-                    {categories.map(cat => (
-                      <div
-                        key={cat.id}
-                        className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700 cursor-pointer"
-                        onClick={() => {
-                          setCatDropdown(false);
-                          setMenuOpen(false);
-                          navigate(`/category/${encodeURIComponent(cat.name)}`);
-                        }}
-                      >
-                        {cat.name}
-                      </div>
-                    ))}
+                  <div className="mt-2 bg-white rounded shadow-lg max-h-48 overflow-y-auto">
+                                         {categories.map((category) => (
+                       <Link
+                         key={category.id}
+                         to={`/category/${encodeURIComponent(category.name)}`}
+                         className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
+                         onClick={() => {
+                           setCatDropdown(false);
+                           setMenuOpen(false);
+                         }}
+                       >
+                         {category.name}
+                       </Link>
+                     ))}
                   </div>
                 )}
               </div>
-              {/* Brands Dropdown Mobile */}
-              <div className="relative">
+
+              {/* Mobile brands */}
+              <div className="relative" ref={brandRef}>
                 <button
-                  className="text-white hover:text-mariner-200 text-lg w-full text-left mt-2"
-                  onClick={() => setBrandDropdown((open) => !open)}
+                  className="text-white hover:text-mariner-200 text-lg w-full text-left flex items-center justify-between"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setBrandDropdown(!brandDropdown);
+                    setCatDropdown(false);
+                  }}
                 >
                   Brands
+                  <svg className={`w-4 h-4 transition-transform ${brandDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
                 {brandDropdown && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded shadow-lg z-50 max-h-80 overflow-y-auto">
-                    {brands.map(brand => (
-                      <div
+                  <div className="mt-2 bg-white rounded shadow-lg max-h-48 overflow-y-auto">
+                    {brands.map((brand) => (
+                      <Link
                         key={brand.id}
-                        className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700 cursor-pointer"
+                        to={`/brand/${encodeURIComponent(brand.name)}`}
+                        className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
                         onClick={() => {
                           setBrandDropdown(false);
                           setMenuOpen(false);
-                          navigate(`/brand/${encodeURIComponent(brand.name)}`);
                         }}
                       >
                         {brand.name}
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
               </div>
-              <Link to="/brands" className="text-white hover:text-mariner-200 text-lg transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg" onClick={() => setMenuOpen(false)}>Brands</Link>
-              {isLoggedIn ? (
-                <Link to="/profile" className="text-white hover:text-mariner-200 text-lg transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg" onClick={() => setMenuOpen(false)}>My Profile</Link>
-              ) : (
-                <>
-                  <Link to="/login" className="text-white hover:text-mariner-200 text-lg transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg" onClick={() => setMenuOpen(false)}>Login</Link>
-                  <Link to="/register" className="text-white hover:text-mariner-200 text-lg transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg" onClick={() => setMenuOpen(false)}>Register</Link>
-                </>
-              )}
-              {isAdmin && (
-                <Link to="/admin" className="text-white bg-red-600 hover:bg-red-500 px-3 py-1 rounded transition-transform transition-shadow duration-200 hover:scale-105 hover:shadow-lg font-semibold" onClick={() => setMenuOpen(false)}>Admin</Link>
-              )}
+
+              <UserMenu isMobile={true} />
             </div>
           </div>
         )}
