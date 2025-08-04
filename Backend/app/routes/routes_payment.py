@@ -4,6 +4,8 @@ from app import db # type: ignore
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+import stripe
+from flask import current_app
 
 payment_bp = Blueprint('payment_bp', __name__)
 
@@ -282,3 +284,41 @@ def get_payment_stats():
             } for stat in method_stats
         ]
     }), 200 
+
+@payment_bp.route('/stripe-session', methods=['POST'])
+@jwt_required()
+def create_stripe_session():
+    """Crear una sesión de pago de Stripe en modo test"""
+    data = request.get_json()
+    items = data.get('items', [])
+    if not items:
+        return jsonify({'error': 'No items provided'}), 400
+
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+
+    # Construir los line_items para Stripe
+    line_items = []
+    for item in items:
+        # Espera: name, price, quantity
+        line_items.append({
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {
+                    'name': item.get('name', 'Product'),
+                },
+                'unit_amount': int(float(item.get('price', 0)) * 100),
+            },
+            'quantity': int(item.get('quantity', 1)),
+        })
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=data.get('success_url', 'http://localhost:5173/checkout?success=true'),
+            cancel_url=data.get('cancel_url', 'http://localhost:5173/checkout?canceled=true'),
+        )
+        return jsonify({'url': session.url})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500 

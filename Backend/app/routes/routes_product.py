@@ -1156,4 +1156,32 @@ def get_product_discounts(product_id):
         )
     ).all()
     
-    return jsonify([discount.serialize() for discount in applicable_discounts]), 200 
+    return jsonify([discount.serialize() for discount in applicable_discounts]), 200
+
+@product_bp.route('/top-discounts-by-category', methods=['GET'])
+def get_top_discounts_by_category():
+    """Obtener el producto con mayor descuento por categoría"""
+    try:
+        # Obtener todas las categorías activas
+        categories = Category.query.all()
+        result = []
+        
+        for category in categories:
+            # Buscar el producto con mayor descuento en esta categoría
+            top_discount_product = Product.query.filter(
+                Product.category_id == category.id,
+                Product.is_active == True,
+                Product.discount_percentage > 0,
+                Product.stock > 0  # Solo productos en stock
+            ).order_by(Product.discount_percentage.desc()).first()
+            
+            if top_discount_product:
+                result.append({
+                    'category': category.serialize(),
+                    'product': top_discount_product.serialize()
+                })
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        return jsonify({'message': f'Error al obtener productos con descuento: {str(e)}'}), 500 

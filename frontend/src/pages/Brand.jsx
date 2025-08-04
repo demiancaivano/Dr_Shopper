@@ -71,7 +71,9 @@ const Brand = () => {
                   key={product.id}
                   id={product.id}
                   title={product.name}
-                  price={product.price}
+                  price={Number(product.price)}
+                  final_price={Number(product.final_price)}
+                  discount_percentage={product.discount_percentage}
                   thumbnail={product.image_url}
                   description={product.description}
                   category={product.category}

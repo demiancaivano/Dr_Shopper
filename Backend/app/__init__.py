@@ -2,12 +2,13 @@
 # Este archivo inicializa la aplicación Flask y la base de datos.
 # Aquí también se pueden inicializar otras extensiones (como JWT, CORS, etc).
 
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate  # Importamos Flask-Migrate
 from flask_mail import Mail
+import os
 
 # Creamos la instancia de SQLAlchemy (ORM para la base de datos)
 db = SQLAlchemy()
@@ -42,7 +43,18 @@ def create_app():
     mail.init_app(app)
 
     # Habilitamos CORS para permitir peticiones desde el frontend
-    CORS(app)
+    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+    CORS(
+        app,
+        origins=[frontend_url],
+        supports_credentials=True
+    )
+
+    # Handler global para responder a las peticiones OPTIONS (preflight)
+    @app.before_request
+    def handle_options():
+        if request.method == 'OPTIONS':
+            return '', 200
 
     # Importamos y registramos los blueprints (rutas/endpoints)
     from .routes import register_blueprints

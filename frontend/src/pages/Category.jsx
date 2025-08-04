@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import Banner from '../components/Banner';
+
 import CardItem from '../components/CardItem';
+import RelatedProductCard from '../components/RelatedProductCard';
+import MobileCarousel from '../components/MobileCarousel';
 import { useParams } from 'react-router-dom';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
@@ -23,6 +25,7 @@ const Category = () => {
   const [pendingFilters, setPendingFilters] = useState(filters);
   const [pendingSort, setPendingSort] = useState(sort);
   const [allPrices, setAllPrices] = useState({ min: 0, max: 1000 });
+  const [relatedProducts, setRelatedProducts] = useState([]);
   // Handler for slider (both desktop and mobile)
   const handleSliderChange = ([newMin, newMax]) => {
     setFilters(prev => ({ ...prev, min: newMin, max: newMax }));
@@ -128,6 +131,20 @@ const Category = () => {
               .map(str => JSON.parse(str));
             setBrands(uniqueBrands);
             setLoading(false);
+            
+            // Fetch related products (from other categories, top rated)
+            fetch(`${API_BASE}?sort_by=rating&sort_order=desc&per_page=8`)
+              .then(res => res.json())
+              .then(relatedData => {
+                // Filter out products from current category and get 4 random ones
+                const otherCategoryProducts = (relatedData.products || []).filter(p => p.category_id !== category_id);
+                const shuffled = otherCategoryProducts.sort(() => 0.5 - Math.random());
+                setRelatedProducts(shuffled.slice(0, 4));
+              })
+              .catch(() => {
+                // If fails, just keep empty array
+                setRelatedProducts([]);
+              });
           })
           .catch(() => {
             setError('Error loading products');
@@ -144,6 +161,13 @@ const Category = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page]);
+
+  // Function to handle page navigation
+  const goToPage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
 
   // Clamp for slider values
   const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
@@ -234,11 +258,7 @@ const Category = () => {
 
   return (
     <div className="container mx-auto px-4 flex flex-col gap-6 mt-6">
-      {/* Banner occupies full width */}
       <h1 className="font-bold text-3xl text-center text-white">{categoryName}</h1>
-      <div className="w-full mb-4">
-        <Banner />
-      </div>
       {/* Mobile: button to show filters */}
       <div className="block lg:hidden mb-4">
         <button
@@ -367,7 +387,9 @@ const Category = () => {
                   key={products[0].id}
                   id={products[0].id}
                   title={products[0].name}
-                  price={products[0].price}
+                  price={Number(products[0].price).toFixed(2)}
+                  final_price={Number(products[0].final_price).toFixed(2)}
+                  discount_percentage={products[0].discount_percentage}
                   thumbnail={products[0].image_url}
                   description={products[0].description}
                   category={categoryName}
@@ -387,7 +409,9 @@ const Category = () => {
                     key={product.id}
                     id={product.id}
                     title={product.name}
-                    price={product.price}
+                    price={Number(product.price)}
+                    final_price={Number(product.final_price)}
+                    discount_percentage={product.discount_percentage}
                     thumbnail={product.image_url}
                     description={product.description}
                     category={categoryName}
@@ -420,6 +444,39 @@ const Category = () => {
           )}
         </main>
       </div>
+      
+      {/* Related products section */}
+      {relatedProducts.length > 0 && (
+        <div className="container mx-auto px-4 mt-12">
+          <h2 className="text-2xl font-bold mb-6 text-white text-center">Related products</h2>
+          {/* Desktop: row of 4, Mobile: carousel */}
+          <div className="hidden md:flex gap-4 w-full justify-center">
+            {relatedProducts.map((prod) => (
+              <div key={prod.id} className="flex-1 min-w-0 max-w-[280px]">
+                <RelatedProductCard
+                  id={prod.id}
+                  title={prod.name}
+                  price={Number(prod.price).toFixed(2)}
+                  final_price={Number(prod.final_price).toFixed(2)}
+                  discount_percentage={prod.discount_percentage}
+                  thumbnail={prod.image_url}
+                  brand={prod.brand}
+                  rating={prod.rating?.average || 0}
+                  ratingCount={prod.rating?.count || 0}
+                  stock={prod.stock || 99}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="block md:hidden">
+            <MobileCarousel products={relatedProducts.map(prod => ({
+              ...prod,
+              price: Number(prod.price).toFixed(2),
+              final_price: Number(prod.final_price).toFixed(2),
+            }))} category="Related" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

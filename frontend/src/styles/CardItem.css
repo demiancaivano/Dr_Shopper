@@ -1,25 +1,85 @@
 .card-item p {    
-    height: 123px;
+    max-height: 2.4rem; /* Altura reducida para solo 2 líneas */
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 6;
+    -webkit-line-clamp: 2; /* Solo 2 líneas para evitar solapamiento */
+    line-clamp: 2; /* Propiedad estándar para compatibilidad */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2rem; /* Altura de línea ajustada para 2 líneas */
+    word-break: break-words; /* Romper palabras largas */
+    margin-bottom: 1rem; /* Más margen inferior para separar del precio */
+}
+
+/* Asegurar que el contenedor del card contenga todos sus elementos */
+.card-item {
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Botones del card deben mantenerse dentro del contenedor */
+.card-item button {
+    max-width: calc(100% - 16px); /* Dejar 8px de margen a cada lado */
+    box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .card-item h2 {
-    height: 60px;
+    height: 3.5rem; /* Altura fija más precisa */
+    max-height: 3.5rem;
+    min-height: 3.5rem;
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2; 
+    line-clamp: 2; /* Propiedad estándar para compatibilidad */
+    text-overflow: ellipsis;
+    word-break: break-words;
+    line-height: 1.75rem; /* Exactamente la mitad de la altura total para 2 líneas */
+    box-sizing: border-box;
 }
 
-/* Para el modo carrusel, permitir que el título se ajuste */
+/* Para el modo carrusel, usar altura más pequeña pero fija */
 .card-item.carousel-mode h2 {
-    height: auto;
-    min-height: 40px;
-    overflow: visible;
-    display: block;
-    -webkit-line-clamp: unset;
+    height: 2.4rem;
+    max-height: 2.4rem;
+    min-height: 2.4rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2; /* Propiedad estándar para compatibilidad */
+    text-overflow: ellipsis;
+    word-break: break-words;
+    line-height: 1.2rem; /* Exactamente la mitad de la altura total para 2 líneas */
+    box-sizing: border-box;
+}
+
+/* Descripción específica para el modo carrusel */
+.card-item.carousel-mode p {
+    max-height: 2.25rem; /* Altura más pequeña para carrusel */
+    -webkit-line-clamp: 2; /* Solo 2 líneas en carrusel */
+    line-clamp: 2; /* Propiedad estándar para compatibilidad */
+    line-height: 1.125rem;
+}
+
+/* Descripción específica para el grid de la página Home */
+.card-item.home-grid-mode p {
+    max-height: 7.2rem; /* Altura para 6 líneas en desktop */
+    -webkit-line-clamp: 6; /* 6 líneas en pantallas grandes */
+    line-clamp: 6; /* Propiedad estándar para compatibilidad */
+    line-height: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+/* En mobile, reducir a 3 líneas para el grid de Home */
+@media (max-width: 640px) {
+    .card-item.home-grid-mode p {
+        max-height: 3.6rem; /* Altura para 3 líneas en mobile */
+        -webkit-line-clamp: 3; /* 3 líneas en mobile */
+        line-clamp: 3; /* Propiedad estándar para compatibilidad */
+    }
 }
 
 .brand-ellipsis {

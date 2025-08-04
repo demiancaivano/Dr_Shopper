@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import CardItem from './CardItem';
 
-const MobileCarousel = ({ products = [], category }) => {
+const MobileCarousel = ({ products = [], category, showAddToCart = false, showDescription = false }) => {
   const [current, setCurrent] = useState(0);
   const carouselRef = useRef(null);
 
@@ -53,15 +53,17 @@ const MobileCarousel = ({ products = [], category }) => {
             <CardItem
               id={product.id}
               title={product.name}
-              price={product.price}
+              price={Number(product.price)}
+              final_price={Number(product.final_price)}
+              discount_percentage={product.discount_percentage}
               thumbnail={product.image_url}
               description={product.description}
               category={category}
               brand={product.brand}
               rating={product.rating?.average || 0}
               ratingCount={product.rating?.count || 0}
-              showDescription={false}
-              showAddToCart={false}
+              showDescription={showDescription}
+              showAddToCart={showAddToCart}
               carousel={true}
             />
           </div>

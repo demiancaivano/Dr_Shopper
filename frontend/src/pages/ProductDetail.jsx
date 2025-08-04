@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CardItem from '../components/CardItem';
+import RelatedProductCard from '../components/RelatedProductCard';
 import MobileCarousel from '../components/MobileCarousel';
 import AuthContext from '../context/AuthContext';
+import CartContext from '../context/CartContext';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
 
@@ -18,6 +20,7 @@ const ProductDetail = () => {
   const [likedReviews, setLikedReviews] = useState(new Set());
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { state: authState } = useContext(AuthContext);
+  const { state: cartState, addItem } = useContext(CartContext);
 
   useEffect(() => {
     setLoading(true);
@@ -142,6 +145,25 @@ const ProductDetail = () => {
     ? product.images
     : (product.image_url ? [product.image_url] : []);
 
+  const inCart = cartState.items.some(item => item.productId === product.id);
+
+  const handleAddToCart = () => {
+    if (!authState.isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (!inCart && product.stock > 0) {
+      addItem({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image_url: mainImage || product.image_url,
+        quantity: 1,
+        stock: product.stock,
+      });
+    }
+  };
+
   // ReviewCard para mostrar una review individual
   const ReviewCard = ({ review }) => {
     const isLiked = likedReviews.has(review.id);
@@ -189,7 +211,8 @@ const ProductDetail = () => {
       {/* Modal for non-logged in users */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 relative">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl" onClick={() => setShowLoginModal(false)}>&times;</button>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Sign in to continue</h3>
             <p className="text-gray-600 mb-6">
               To mark reviews as helpful, you need to be registered and signed in.
@@ -262,8 +285,19 @@ const ProductDetail = () => {
             </div>
           )}
           <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl font-semibold">€{product.price}</span>
-            <span className="text-sm">Stock: {product.stock > 0 ? product.stock : 'Out of stock'}</span>
+            {product.discount_percentage > 0 && product.final_price < product.price ? (
+              <>
+                <span className="text-2xl font-semibold line-through opacity-60">€{product.price}</span>
+                <span className="text-3xl font-bold text-red-600 ml-2">€{product.final_price.toFixed(2)}</span>
+                <span className="ml-2 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded">-{product.discount_percentage}%</span>
+                <span className="text-sm ml-2">Stock: {product.stock > 0 ? product.stock : 'Out of stock'}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-semibold">€{product.price}</span>
+                <span className="text-sm ml-2">Stock: {product.stock > 0 ? product.stock : 'Out of stock'}</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2 mb-1">
             {/* Render stars similar to CardItem */}
@@ -274,7 +308,13 @@ const ProductDetail = () => {
             <span className="text-xs">({reviewsCount})</span>
           </div>
           <p className="mb-2 text-white/90">{product.description}</p>
-          <button className="bg-blue-700 text-white px-4 py-2 rounded font-semibold w-fit mt-2 hover:bg-blue-600 transition">Add to cart</button>
+          <button
+            className={`bg-blue-700 text-white px-4 py-2 rounded font-semibold w-fit mt-2 hover:bg-blue-600 transition ${inCart ? 'bg-green-600 cursor-not-allowed' : ''}`}
+            onClick={handleAddToCart}
+            disabled={inCart || product.stock <= 0}
+          >
+            {inCart ? 'In Cart' : product.stock <= 0 ? 'Out of stock' : 'Add to cart'}
+          </button>
         </div>
       </div>
       {/* Reviews */}
@@ -315,25 +355,27 @@ const ProductDetail = () => {
         <div className="hidden md:flex gap-4 w-full">
           {related.map((prod) => (
             <div key={prod.id} className="flex-1 min-w-0 max-w-[280px]">
-              <CardItem
+              <RelatedProductCard
                 id={prod.id}
                 title={prod.name}
-                price={prod.price}
+                price={Number(prod.price).toFixed(2)}
+                final_price={Number(prod.final_price).toFixed(2)}
+                discount_percentage={prod.discount_percentage}
                 thumbnail={prod.image_url}
-                description={prod.description}
-                category={prod.category}
                 brand={prod.brand}
                 rating={prod.rating?.average || 0}
                 ratingCount={prod.rating?.count || 0}
-                showDescription={false}
-                showAddToCart={false}
-                compact={true}
+                stock={prod.stock || 99}
               />
             </div>
           ))}
         </div>
         <div className="block md:hidden">
-          <MobileCarousel products={related} category={product.category} />
+          <MobileCarousel products={related.map(prod => ({
+            ...prod,
+            price: Number(prod.price).toFixed(2),
+            final_price: Number(prod.final_price).toFixed(2),
+          }))} category={product.category} />
         </div>
       </div>
     </div>

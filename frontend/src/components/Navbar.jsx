@@ -95,6 +95,18 @@ function Navbar({ onCartClick }) {
               >
                 My Profile
               </Link>
+              {state.user?.is_admin && (
+                <Link
+                  to="/manage"
+                  className="block px-4 py-2 text-mariner-900 hover:bg-blue-100 hover:text-blue-700 font-semibold"
+                  onClick={() => {
+                    setUserDropdown(false);
+                    if (isMobile) setMenuOpen(false);
+                  }}
+                >
+                  Manage
+                </Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="block w-full text-left px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
