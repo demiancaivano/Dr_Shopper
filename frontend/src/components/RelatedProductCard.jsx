@@ -128,18 +128,18 @@ const RelatedProductCard = ({
         {inCart ? (
           <button
             className="flex items-center justify-center gap-1 bg-green-600 text-white px-3 py-1.5 text-xs rounded-md font-semibold shadow cursor-pointer hover:bg-green-700 transition-colors"
-            title="Quitar del carrito"
+            title="Remove from cart"
             onClick={handleRemoveFromCart}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-            En carrito
+            In cart
           </button>
         ) : (
           <button
             className="flex items-center justify-center gap-1 bg-blue-950 text-white px-3 py-1.5 text-xs rounded-md hover:bg-blue-700 transition-colors font-semibold shadow disabled:opacity-50"
-            title="Añadir al carrito"
+            title="Add to cart"
             onClick={handleAddToCart}
             disabled={stock <= 0}
           >

@@ -85,34 +85,44 @@ function Navbar({ onCartClick }) {
           </button>
           {userDropdown && (
             <div className={`absolute ${isMobile ? 'left-0' : 'right-0'} mt-2 w-48 bg-white rounded shadow-lg z-50`}>
-              <Link
-                to="/profile"
-                className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
-                onClick={() => {
-                  setUserDropdown(false);
-                  if (isMobile) setMenuOpen(false);
-                }}
-              >
-                My Profile
-              </Link>
-              {state.user?.is_admin && (
-                <Link
-                  to="/manage"
-                  className="block px-4 py-2 text-mariner-900 hover:bg-blue-100 hover:text-blue-700 font-semibold"
-                  onClick={() => {
-                    setUserDropdown(false);
-                    if (isMobile) setMenuOpen(false);
-                  }}
-                >
-                  Manage
-                </Link>
-              )}
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
-              >
-                Sign out
-              </button>
+                             <Link
+                 to="/profile"
+                 className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
+                 onClick={() => {
+                   setUserDropdown(false);
+                   if (isMobile) setMenuOpen(false);
+                 }}
+               >
+                 My Profile
+               </Link>
+               <Link
+                 to="/my-orders"
+                 className="block px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
+                 onClick={() => {
+                   setUserDropdown(false);
+                   if (isMobile) setMenuOpen(false);
+                 }}
+               >
+                 My Orders
+               </Link>
+               {state.user?.is_admin && (
+                 <Link
+                   to="/manage"
+                   className="block px-4 py-2 text-mariner-900 hover:bg-blue-100 hover:text-blue-700 font-semibold"
+                   onClick={() => {
+                     setUserDropdown(false);
+                     if (isMobile) setMenuOpen(false);
+                   }}
+                 >
+                   Manage
+                 </Link>
+               )}
+               <button
+                 onClick={handleLogout}
+                 className="block w-full text-left px-4 py-2 text-mariner-900 hover:bg-mariner-100 hover:text-blue-700"
+               >
+                 Sign Out
+               </button>
             </div>
           )}
         </div>

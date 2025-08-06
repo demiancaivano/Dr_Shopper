@@ -25,6 +25,7 @@ import ManageCategories from './pages/ManageCategories';
 import ManageProducts from './pages/ManageProducts';
 import { CartProvider } from './context/CartContext';
 import Checkout from './pages/Checkout';
+import MyOrders from './pages/MyOrders';
 
 function AppContent() {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
@@ -57,6 +58,11 @@ function AppContent() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-orders" element={
+              <ProtectedRoute>
+                <MyOrders />
               </ProtectedRoute>
             } />
             <Route path="/category/:categoryName" element={<Category />} />
