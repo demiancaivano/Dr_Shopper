@@ -44,11 +44,34 @@ def create_app():
 
     # Habilitamos CORS para permitir peticiones desde el frontend
     frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-    CORS(
-        app,
-        origins=[frontend_url],
-        supports_credentials=True
-    )
+    
+    # Configuración CORS segura para producción
+    if app.config.get('FLASK_ENV') == 'production':
+        # En producción, solo permitir orígenes específicos
+        cors_origins = [frontend_url] if frontend_url else []
+        CORS(
+            app,
+            origins=cors_origins,
+            supports_credentials=True,
+            allow_headers=["Content-Type", "Authorization"],
+            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        )
+    else:
+        # En desarrollo, permitir orígenes locales y de red
+        cors_origins = [
+            frontend_url,
+            "http://192.168.30.201:5173",  # IP de red para móvil
+            "http://172.28.160.1:5173",    # Otra IP de red
+            "http://localhost:5173",        # Localhost
+            "http://127.0.0.1:5173",       # Localhost alternativo
+        ]
+        CORS(
+            app,
+            origins=cors_origins,
+            supports_credentials=False,  # Deshabilitar credentials para desarrollo
+            allow_headers=["Content-Type", "Authorization"],
+            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        )
 
     # Handler global para responder a las peticiones OPTIONS (preflight)
     @app.before_request

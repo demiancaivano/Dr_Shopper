@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
+import usePageTitle from '../hooks/usePageTitle';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,9 @@ function Login() {
   const { state, login, clearError } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Cambiar el título de la página
+  usePageTitle('Login');
 
   // Redirect if already authenticated
   useEffect(() => {

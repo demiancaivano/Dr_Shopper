@@ -19,7 +19,7 @@ class Config:
 
     # Configuración de JWT (puedes agregar más opciones si lo necesitas)
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'otra_clave_secreta_para_jwt'
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=3)  # <-- Esto hace que el token dure 7 días
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)  # Token válido por 7 días
 
     # Configuración de Flask-Mail
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')

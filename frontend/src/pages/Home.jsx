@@ -4,6 +4,7 @@ import CardItem from '../components/CardItem';
 import useBreakpoint from '../hooks/useBreakpoint';
 import MobileCarousel from '../components/MobileCarousel'; // Added import for MobileCarousel
 import { Link } from 'react-router-dom';
+import usePageTitle from '../hooks/usePageTitle';
 
 // URL base del backend
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
@@ -13,6 +14,9 @@ function Home() {
   const [productsByCategory, setProductsByCategory] = useState({});
   const [loading, setLoading] = useState(true);
   const breakpoint = useBreakpoint();
+
+  // Cambiar el título de la página
+  usePageTitle('Home');
 
   // Configuración de bloques por fila según breakpoint
   let blocksPerRow = 4;

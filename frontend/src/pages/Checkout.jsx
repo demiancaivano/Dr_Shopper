@@ -4,6 +4,7 @@ import AuthContext from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ShippingAddressSelector from '../components/ShippingAddressSelector';
 import { useState } from 'react';
+import usePageTitle from '../hooks/usePageTitle';
 
 const Checkout = () => {
   const { state: cartState } = useContext(CartContext);
@@ -11,6 +12,9 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Cambiar el título de la página
+  usePageTitle('Checkout');
 
   if (!authState.isAuthenticated) {
     return (

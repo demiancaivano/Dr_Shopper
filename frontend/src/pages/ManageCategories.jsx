@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = import.meta.env.VITE_API_URL + '/api/products/categories';
 
@@ -13,6 +15,9 @@ const ManageCategories = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteCategory, setDeleteCategory] = useState(null);
   const [message, setMessage] = useState(null);
+
+  // Cambiar el título de la página
+  usePageTitle('Manage Categories');
 
   // Fetch categories
   const fetchCategories = async () => {
@@ -151,7 +156,14 @@ const ManageCategories = () => {
                 ) : (
                   categories.map(cat => (
                     <tr key={cat.id} className="border-t">
-                      <td className="px-4 py-2 font-semibold text-blue-900">{cat.name}</td>
+                      <td className="px-4 py-2 font-semibold text-blue-900">
+                        <Link 
+                          to={`/category/${encodeURIComponent(cat.name)}`}
+                          className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                        >
+                          {cat.name}
+                        </Link>
+                      </td>
                       <td className="px-4 py-2 text-blue-900">{cat.description}</td>
                       <td className="px-4 py-2 text-sm text-blue-900">{new Date(cat.creation_date).toLocaleDateString()}</td>
                       <td className="px-4 py-2 flex gap-2">
@@ -177,7 +189,14 @@ const ManageCategories = () => {
             ) : (
               categories.map(cat => (
                 <div key={cat.id} className="bg-white rounded shadow p-4 flex flex-col gap-2">
-                  <div className="font-bold text-blue-900 text-lg">{cat.name}</div>
+                  <div className="font-bold text-blue-900 text-lg">
+                    <Link 
+                      to={`/category/${encodeURIComponent(cat.name)}`}
+                      className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                    >
+                      {cat.name}
+                    </Link>
+                  </div>
                   {cat.description && <div className="text-blue-900 text-sm">{cat.description}</div>}
                   <div className="text-xs text-blue-900">Created: {new Date(cat.creation_date).toLocaleDateString()}</div>
                   <div className="flex gap-2 mt-2">

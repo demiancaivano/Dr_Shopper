@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
+import usePageTitle from '../hooks/usePageTitle';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,9 @@ const Register = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const { state, register, clearError } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  // Cambiar el título de la página
+  usePageTitle('Register');
 
   // Redirect if already authenticated
   useEffect(() => {

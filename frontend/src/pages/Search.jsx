@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import CardItem from '../components/CardItem';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
 const PER_PAGE = 12;
@@ -24,6 +25,9 @@ const Search = () => {
   const [mobilePriceRange, setMobilePriceRange] = useState([0, 1000]);
   // Rango global de precios para el slider
   const [globalPriceRange, setGlobalPriceRange] = useState([0, 1000]);
+
+  // Cambiar el título de la página con la búsqueda
+  usePageTitle(`Search: ${query}`);
 
   // Calcular el rango global de precios solo cuando cambia el query
   useEffect(() => {

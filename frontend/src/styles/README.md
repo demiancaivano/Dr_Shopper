@@ -1,3 +1,3 @@
 # styles
 
-Archivos CSS globales o específicos para la aplicación. 
+Global or specific CSS files for the application. 

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = import.meta.env.VITE_API_URL + '/api/products';
 const CATEGORY_API = API_BASE + '/categories';
@@ -37,6 +39,9 @@ const ManageProducts = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Cambiar el título de la página
+  usePageTitle('Manage Products');
 
   // Fetch products, categories, brands
   const fetchAll = async () => {
@@ -334,9 +339,38 @@ const ManageProducts = () => {
                 ) : (
                   products.map(prod => (
                     <tr key={prod.id} className="border-t">
-                      <td className="px-4 py-2 font-semibold text-blue-900">{prod.name}</td>
-                      <td className="px-4 py-2 text-blue-900">{prod.category}</td>
-                      <td className="px-4 py-2 text-blue-900">{prod.brand}</td>
+                      <td className="px-4 py-2 font-semibold text-blue-900">
+                        <Link 
+                          to={`/product/${prod.id}`}
+                          className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                        >
+                          {prod.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2 text-blue-900">
+                        {prod.category ? (
+                          <Link 
+                            to={`/category/${encodeURIComponent(prod.category)}`}
+                            className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                          >
+                            {prod.category}
+                          </Link>
+                        ) : (
+                          'No category'
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-blue-900">
+                        {prod.brand ? (
+                          <Link 
+                            to={`/brand/${encodeURIComponent(prod.brand)}`}
+                            className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                          >
+                            {prod.brand}
+                          </Link>
+                        ) : (
+                          'No brand'
+                        )}
+                      </td>
                       <td className="px-4 py-2 text-blue-900">€{prod.price}</td>
                       <td className="px-4 py-2 text-blue-900">{prod.stock}</td>
                       <td className="px-4 py-2 text-blue-900">{prod.rating?.average?.toFixed(2) ?? '0.00'}</td>
@@ -364,9 +398,38 @@ const ManageProducts = () => {
             ) : (
               products.map(prod => (
                 <div key={prod.id} className="bg-white rounded shadow p-4 flex flex-col gap-2">
-                  <div className="font-bold text-blue-900 text-lg">{prod.name}</div>
-                  <div className="text-blue-900 text-sm">Category: {prod.category}</div>
-                  <div className="text-blue-900 text-sm">Brand: {prod.brand}</div>
+                  <div className="font-bold text-blue-900 text-lg">
+                    <Link 
+                      to={`/product/${prod.id}`}
+                      className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                    >
+                      {prod.name}
+                    </Link>
+                  </div>
+                  <div className="text-blue-900 text-sm">
+                    Category: {prod.category ? (
+                      <Link 
+                        to={`/category/${encodeURIComponent(prod.category)}`}
+                        className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                      >
+                        {prod.category}
+                      </Link>
+                    ) : (
+                      'No category'
+                    )}
+                  </div>
+                  <div className="text-blue-900 text-sm">
+                    Brand: {prod.brand ? (
+                      <Link 
+                        to={`/brand/${encodeURIComponent(prod.brand)}`}
+                        className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                      >
+                        {prod.brand}
+                      </Link>
+                    ) : (
+                      'No brand'
+                    )}
+                  </div>
                   <div className="text-blue-900 text-sm">Price: €{prod.price}</div>
                   <div className="text-blue-900 text-sm">Stock: {prod.stock}</div>
                   <div className="text-blue-900 text-sm">Rating: {prod.rating?.average?.toFixed(2) ?? '0.00'}</div>

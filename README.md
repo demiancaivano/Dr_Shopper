@@ -1,71 +1,71 @@
 # Dr_Shopper 🛒
 
-Una aplicación web completa para gestión de compras con backend en Flask y frontend en React.
+A complete web application for shopping management with Flask backend and React frontend.
 
-## 🚀 Características
+## 🚀 Features
 
-- **Backend**: API REST con Flask, SQLAlchemy y JWT
-- **Frontend**: Interfaz moderna con React y Vite
-- **Autenticación**: Sistema de autenticación seguro con JWT
-- **Base de datos**: ORM con SQLAlchemy y migraciones
-- **CORS**: Configurado para comunicación entre frontend y backend
+- **Backend**: REST API with Flask, SQLAlchemy and JWT
+- **Frontend**: Modern interface with React and Vite
+- **Authentication**: Secure authentication system with JWT
+- **Database**: ORM with SQLAlchemy and migrations
+- **CORS**: Configured for communication between frontend and backend
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 Dr_Shopper/
-├── Backend/                 # API Flask
+├── Backend/                 # Flask API
 │   ├── app/
-│   │   ├── __init__.py     # Configuración de la app
-│   │   ├── auth.py         # Autenticación
-│   │   ├── config.py       # Configuración
-│   │   ├── models.py       # Modelos de base de datos
-│   │   └── routes.py       # Rutas de la API
-│   ├── migrations/         # Migraciones de base de datos
-│   ├── requirements.txt    # Dependencias Python
-│   └── run.py             # Script de ejecución
-└── frontend/              # Aplicación React
+│   │   ├── __init__.py     # App configuration
+│   │   ├── auth.py         # Authentication
+│   │   ├── config.py       # Configuration
+│   │   ├── models.py       # Database models
+│   │   └── routes.py       # API routes
+│   ├── migrations/         # Database migrations
+│   ├── requirements.txt    # Python dependencies
+│   └── run.py             # Execution script
+└── frontend/              # React application
     ├── src/
-    │   ├── App.jsx        # Componente principal
-    │   └── main.jsx       # Punto de entrada
-    ├── package.json       # Dependencias Node.js
-    └── vite.config.js     # Configuración de Vite
+    │   ├── App.jsx        # Main component
+    │   └── main.jsx       # Entry point
+    ├── package.json       # Node.js dependencies
+    └── vite.config.js     # Vite configuration
 ```
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Technologies Used
 
 ### Backend
-- **Flask**: Framework web
-- **SQLAlchemy**: ORM para base de datos
-- **Flask-JWT-Extended**: Autenticación JWT
-- **Flask-Migrate**: Migraciones de base de datos
-- **Flask-CORS**: Soporte para CORS
+- **Flask**: Web framework
+- **SQLAlchemy**: Database ORM
+- **Flask-JWT-Extended**: JWT authentication
+- **Flask-Migrate**: Database migrations
+- **Flask-CORS**: CORS support
 
 ### Frontend
-- **React**: Biblioteca de interfaz de usuario
-- **Vite**: Herramienta de construcción
-- **ESLint**: Linter para JavaScript
+- **React**: User interface library
+- **Vite**: Build tool
+- **ESLint**: JavaScript linter
 
-## 📦 Instalación
+## 📦 Installation
 
-### Prerrequisitos
+### Prerequisites
 - Python 3.8+
 - Node.js 16+
 - Git
 
 ### Backend
 
-1. Navega al directorio del backend:
+1. Navigate to the backend directory:
 ```bash
 cd Backend
 ```
 
-2. Crea un entorno virtual:
+2. Create a virtual environment:
 ```bash
 python -m venv venv
 ```
 
-3. Activa el entorno virtual:
+3. Activate the virtual environment:
 ```bash
 # Windows
 venv\Scripts\activate
@@ -74,84 +74,84 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-4. Instala las dependencias:
+4. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-5. Configura las variables de entorno (crea un archivo `.env`):
+5. Configure environment variables (create a `.env` file):
 ```env
 FLASK_APP=run.py
 FLASK_ENV=development
-SECRET_KEY=tu_clave_secreta_aqui
+SECRET_KEY=your_secret_key_here
 DATABASE_URL=sqlite:///app.db
 ```
 
-6. Inicializa la base de datos:
+6. Initialize the database:
 ```bash
 flask db init
 flask db migrate
 flask db upgrade
 ```
 
-7. Ejecuta el servidor:
+7. Run the server:
 ```bash
 python run.py
 ```
 
 ### Frontend
 
-1. Navega al directorio del frontend:
+1. Navigate to the frontend directory:
 ```bash
 cd frontend
 ```
 
-2. Instala las dependencias:
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Ejecuta el servidor de desarrollo:
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-## 🌐 Uso
+## 🌐 Usage
 
-- **Backend**: Disponible en `http://localhost:5000`
-- **Frontend**: Disponible en `http://localhost:5173`
+- **Backend**: Available at `http://localhost:5000`
+- **Frontend**: Available at `http://localhost:5173`
 
 ## 📝 API Endpoints
 
-### Autenticación
-- `POST /auth/register` - Registro de usuario
-- `POST /auth/login` - Inicio de sesión
-- `POST /auth/logout` - Cerrar sesión
+### Authentication
+- `POST /auth/register` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/logout` - User logout
 
-### Usuarios
-- `GET /users` - Obtener lista de usuarios
-- `GET /users/<id>` - Obtener usuario específico
-- `PUT /users/<id>` - Actualizar usuario
-- `DELETE /users/<id>` - Eliminar usuario
+### Users
+- `GET /users` - Get users list
+- `GET /users/<id>` - Get specific user
+- `PUT /users/<id>` - Update user
+- `DELETE /users/<id>` - Delete user
 
-## 🤝 Contribución
+## 🤝 Contributing
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+This project is under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Autor
+## 👨‍💻 Author
 
-**Tu Nombre** - [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com)
+**Your Name** - [your-email@example.com](mailto:your-email@example.com)
 
-## 🙏 Agradecimientos
+## 🙏 Acknowledgments
 
-- Flask por el excelente framework
-- React por la biblioteca de interfaz de usuario
-- La comunidad de desarrolladores por el apoyo 
+- Flask for the excellent framework
+- React for the user interface library
+- The developer community for support 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import CardItem from '../components/CardItem';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
 
@@ -9,6 +10,9 @@ const Brand = () => {
   const [productsByCategory, setProductsByCategory] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Cambiar el título de la página con el nombre de la marca
+  usePageTitle(`Brand: ${brandName}`);
 
   useEffect(() => {
     setLoading(true);

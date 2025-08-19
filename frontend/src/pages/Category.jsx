@@ -6,6 +6,7 @@ import MobileCarousel from '../components/MobileCarousel';
 import { useParams } from 'react-router-dom';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
 const PER_PAGE = 6;
@@ -26,6 +27,9 @@ const Category = () => {
   const [pendingSort, setPendingSort] = useState(sort);
   const [allPrices, setAllPrices] = useState({ min: 0, max: 1000 });
   const [relatedProducts, setRelatedProducts] = useState([]);
+
+  // Cambiar el título de la página con el nombre de la categoría
+  usePageTitle(`Category: ${categoryName}`);
   // Handler for slider (both desktop and mobile)
   const handleSliderChange = ([newMin, newMax]) => {
     setFilters(prev => ({ ...prev, min: newMin, max: newMax }));

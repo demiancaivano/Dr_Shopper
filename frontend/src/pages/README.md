@@ -1,3 +1,3 @@
 # pages
 
-Vistas principales de la aplicación, cada una corresponde a una ruta. 
+Main views of the application, each one corresponds to a route. 

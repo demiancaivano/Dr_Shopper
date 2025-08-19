@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
 
@@ -19,6 +20,9 @@ const ProductReviews = () => {
   const [likedReviews, setLikedReviews] = useState(new Set());
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { state: authState } = useContext(AuthContext);
+
+  // Cambiar el título de la página con el nombre del producto
+  usePageTitle(product?.name ? `Reviews: ${product.name}` : 'Product Reviews');
 
   const PER_PAGE = 10;
 

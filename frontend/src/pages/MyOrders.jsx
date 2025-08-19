@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
 const MyOrders = () => {
   const navigate = useNavigate();
   const { state: authState } = useContext(AuthContext);
+  
+  // Cambiar el título de la página
+  usePageTitle('My Orders');
   
   // Main states
   const [orders, setOrders] = useState([]);

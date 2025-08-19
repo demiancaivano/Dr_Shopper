@@ -1,3 +1,3 @@
 # utils
 
-Funciones utilitarias y helpers para la aplicación. 
+Utility functions and helpers for the application. 

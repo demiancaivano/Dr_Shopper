@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import usePageTitle from '../hooks/usePageTitle';
 
 const Cart = () => {
   const { state: authState } = useContext(AuthContext);
@@ -10,6 +11,9 @@ const Cart = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const navigate = useNavigate();
+
+  // Cambiar el título de la página
+  usePageTitle('Shopping Cart');
 
   if (!authState.isAuthenticated) {
     return (

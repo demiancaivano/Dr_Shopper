@@ -47,7 +47,10 @@ class Category(db.Model):
     name = db.Column(db.String(120), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, server_default=func.now())
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)  # Cambiado a nullable=True y renombrado
+    
+    # Relación para subcategorías
+    subcategories = db.relationship('Category', backref=db.backref('parent', remote_side=[id]))
 
     def __repr__(self):
         return f'<Category {self.name}>'
@@ -58,7 +61,8 @@ class Category(db.Model):
             'name': self.name,
             'description': self.description,
             'creation_date': self.creation_date.isoformat(),
-            'category_id': self.category_id
+            'parent_id': self.parent_id,
+            'has_subcategories': len(self.subcategories) > 0
         }
 
 class Brand(db.Model):

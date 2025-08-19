@@ -1,3 +1,3 @@
 # components
 
-Componentes reutilizables de la aplicación React. 
+Reusable React components for the application. 

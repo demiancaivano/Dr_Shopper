@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = import.meta.env.VITE_API_URL + '/api/products/brands';
 
@@ -13,6 +15,9 @@ const ManageBrands = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteBrand, setDeleteBrand] = useState(null);
   const [message, setMessage] = useState(null);
+
+  // Cambiar el título de la página
+  usePageTitle('Manage Brands');
 
   // Fetch brands
   const fetchBrands = async () => {
@@ -158,11 +163,23 @@ const ManageBrands = () => {
                 ) : (
                   brands.map(brand => (
                     <tr key={brand.id} className="border-t">
-                      <td className="px-4 py-2 font-semibold text-blue-900">{brand.name}</td>
+                      <td className="px-4 py-2 font-semibold text-blue-900">
+                        <Link 
+                          to={`/brand/${encodeURIComponent(brand.name)}`}
+                          className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                        >
+                          {brand.name}
+                        </Link>
+                      </td>
                       <td className="px-4 py-2 text-blue-900">{brand.description}</td>
                       <td className="px-4 py-2 text-blue-900">
                         {brand.logo_url ? (
-                          <img src={brand.logo_url} alt="logo" className="h-8 max-w-[80px] object-contain bg-white border rounded" />
+                          <Link 
+                            to={`/brand/${encodeURIComponent(brand.name)}`}
+                            className="block hover:opacity-80 transition-opacity"
+                          >
+                            <img src={brand.logo_url} alt="logo" className="h-8 max-w-[80px] object-contain bg-white border rounded" />
+                          </Link>
                         ) : (
                           <span className="italic">No logo</span>
                         )}
@@ -198,11 +215,23 @@ const ManageBrands = () => {
             ) : (
               brands.map(brand => (
                 <div key={brand.id} className="bg-white rounded shadow p-4 flex flex-col gap-2">
-                  <div className="font-bold text-blue-900 text-lg">{brand.name}</div>
+                  <div className="font-bold text-blue-900 text-lg">
+                    <Link 
+                      to={`/brand/${encodeURIComponent(brand.name)}`}
+                      className="text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+                    >
+                      {brand.name}
+                    </Link>
+                  </div>
                   {brand.description && <div className="text-blue-900 text-sm">{brand.description}</div>}
                   {brand.logo_url && (
                     <div className="flex items-center gap-2 mt-1">
-                      <img src={brand.logo_url} alt="logo" className="h-8 max-w-[80px] object-contain bg-white border rounded" />
+                      <Link 
+                        to={`/brand/${encodeURIComponent(brand.name)}`}
+                        className="hover:opacity-80 transition-opacity"
+                      >
+                        <img src={brand.logo_url} alt="logo" className="h-8 max-w-[80px] object-contain bg-white border rounded" />
+                      </Link>
                       <span className="text-xs text-blue-900">Logo</span>
                     </div>
                   )}

@@ -5,6 +5,7 @@ import RelatedProductCard from '../components/RelatedProductCard';
 import MobileCarousel from '../components/MobileCarousel';
 import AuthContext from '../context/AuthContext';
 import CartContext from '../context/CartContext';
+import usePageTitle from '../hooks/usePageTitle';
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/products`;
 
@@ -20,7 +21,10 @@ const ProductDetail = () => {
   const [likedReviews, setLikedReviews] = useState(new Set());
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { state: authState } = useContext(AuthContext);
-  const { state: cartState, addItem } = useContext(CartContext);
+  const { state: cartState, addItem, removeItem } = useContext(CartContext);
+
+  // Cambiar el título de la página cuando se cargue el producto
+  usePageTitle(product?.name);
 
   useEffect(() => {
     setLoading(true);
@@ -161,6 +165,16 @@ const ProductDetail = () => {
         quantity: 1,
         stock: product.stock,
       });
+    }
+  };
+
+  const handleRemoveFromCart = () => {
+    if (!authState.isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (inCart) {
+      removeItem(product.id);
     }
   };
 
@@ -309,11 +323,11 @@ const ProductDetail = () => {
           </div>
           <p className="mb-2 text-white/90">{product.description}</p>
           <button
-            className={`bg-blue-700 text-white px-4 py-2 rounded font-semibold w-fit mt-2 hover:bg-blue-600 transition ${inCart ? 'bg-green-600 cursor-not-allowed' : ''}`}
-            onClick={handleAddToCart}
-            disabled={inCart || product.stock <= 0}
+            className={`bg-blue-700 text-white px-4 py-2 rounded font-semibold w-fit mt-2 hover:bg-blue-600 transition ${inCart ? 'bg-green-600 hover:bg-green-700' : ''}`}
+            onClick={inCart ? handleRemoveFromCart : handleAddToCart}
+            disabled={product.stock <= 0}
           >
-            {inCart ? 'In Cart' : product.stock <= 0 ? 'Out of stock' : 'Add to cart'}
+            {inCart ? 'Remove from Cart' : product.stock <= 0 ? 'Out of stock' : 'Add to cart'}
           </button>
         </div>
       </div>

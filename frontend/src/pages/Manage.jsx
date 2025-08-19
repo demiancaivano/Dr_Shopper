@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import usePageTitle from '../hooks/usePageTitle';
 
 // Admin management dashboard
 const Manage = () => {
+  // Cambiar el título de la página
+  usePageTitle('Admin Dashboard');
   return (
     <div className="max-w-3xl mx-auto py-10 px-4 min-h-[60vh]">
       <h1 className="text-3xl font-bold mb-6 text-white">Admin Dashboard</h1>

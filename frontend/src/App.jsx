@@ -14,6 +14,7 @@ import NotFound from './pages/NotFound';
 import Brand from './pages/Brand';
 import ProductReviews from './pages/ProductReviews';
 import Search from './pages/Search';
+import Contact from './pages/Contact';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -48,6 +49,7 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/product/:id/reviews" element={<ProductReviews />} />
             <Route path="/cart" element={
