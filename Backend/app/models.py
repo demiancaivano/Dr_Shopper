@@ -334,6 +334,7 @@ class Address(db.Model):
             'city': self.city,
             'state': self.state,
             'zip_code': self.zip_code,
+            'postal_code': self.zip_code,  # Include both for frontend compatibility
             'country': self.country,
             'extra_info': self.extra_info,
             'is_default': self.is_default

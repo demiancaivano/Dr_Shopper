@@ -15,7 +15,7 @@ def get_addresses():
     current_user_id = get_jwt_identity()
     
     addresses = Address.query.filter_by(user_id=current_user_id).all()
-    return jsonify([address.serialize() for address in addresses]), 200
+    return jsonify({'addresses': [address.serialize() for address in addresses]}), 200
 
 @address_bp.route('/<int:address_id>', methods=['GET'])
 @jwt_required()
