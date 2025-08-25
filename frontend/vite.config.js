@@ -15,4 +15,8 @@ export default defineConfig({
   define: {
     'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:5000'),
   },
+  preview: {
+    port: 4173,
+    host: true,
+  }
 })
