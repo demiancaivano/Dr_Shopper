@@ -75,11 +75,11 @@ function Home() {
         </div>
         <h1 className="text-3xl font-bold mt-2 mb-4">Featured Products</h1>
         <div
-          className="grid gap-8 gap-y-12 mb-4 w-full"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}
+          className="grid gap-4 sm:gap-6 md:gap-8 gap-y-6 sm:gap-y-8 md:gap-y-12 mb-4 w-full"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}
         >
           {blocks.map(block => (
-            <div key={block.id} className="bg-white rounded-lg shadow p-3 flex flex-col items-center border border-gray-200 h-full mb-2 min-h-[400px]">
+            <div key={block.id} className="bg-white rounded-lg shadow p-3 flex flex-col items-center border border-gray-200 h-full mb-2 min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
               <h2 className="text-xl font-semibold text-mariner-900 mb-2 text-center">
                 <Link to={`/category/${encodeURIComponent(block.name)}`} className="hover:underline text-mariner-900">{block.name}</Link>
               </h2>

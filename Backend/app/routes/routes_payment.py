@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.models import Payment, Order
+from app.models import Payment, Order, OrderItem, Cart, CartItem, Address
 from app import db # type: ignore
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError
@@ -321,4 +321,105 @@ def create_stripe_session():
         )
         return jsonify({'url': session.url})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500 
+        return jsonify({'error': str(e)}), 500
+
+@payment_bp.route('/confirm-stripe-payment', methods=['POST'])
+@jwt_required()
+def confirm_stripe_payment():
+    """Confirmar un pago de Stripe y crear la orden"""
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    if not data.get('session_id'):
+        return jsonify({'message': 'session_id is required'}), 400
+    
+    try:
+        # Configurar Stripe
+        stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+        
+        # Obtener la sesión de Stripe
+        session = stripe.checkout.Session.retrieve(data['session_id'])
+        
+        if session.payment_status != 'paid':
+            return jsonify({'message': 'Payment not completed'}), 400
+        
+        # Obtener el carrito del usuario
+        cart = Cart.query.filter_by(user_id=current_user_id, is_active=True).first()
+        if not cart:
+            return jsonify({'message': 'No active cart found'}), 400
+        
+        cart_items = CartItem.query.filter_by(cart_id=cart.id).all()
+        if not cart_items:
+            return jsonify({'message': 'No items in cart'}), 400
+        
+        # Verificar stock
+        for item in cart_items:
+            if item.product.stock < item.quantity:
+                return jsonify({
+                    'message': f'Insufficient stock for {item.product.name}. Only {item.product.stock} units available'
+                }), 400
+        
+        # Obtener la dirección por defecto del usuario
+        address = Address.query.filter_by(user_id=current_user_id, is_default=True).first()
+        if not address:
+            return jsonify({'message': 'No default shipping address found'}), 400
+        
+        # Crear la orden
+        total_amount = sum(item.quantity * item.product.price for item in cart_items)
+        
+        new_order = Order()
+        new_order.user_id = current_user_id
+        new_order.total_amount = total_amount
+        new_order.status = 'processing'  # Cambiar a 'processing' ya que el pago está confirmado
+        new_order.address_id = address.id
+        
+        db.session.add(new_order)
+        db.session.flush()  # Para obtener el ID de la orden
+        
+        # Crear los items de la orden
+        for cart_item in cart_items:
+            order_item = OrderItem()
+            order_item.order_id = new_order.id
+            order_item.product_id = cart_item.product_id
+            order_item.quantity = cart_item.quantity
+            order_item.price = cart_item.product.price
+            
+            db.session.add(order_item)
+            
+            # Actualizar stock del producto
+            cart_item.product.stock -= cart_item.quantity
+        
+        # Crear el registro de pago
+        payment = Payment()
+        payment.order_id = new_order.id
+        payment.amount = total_amount
+        payment.payment_method = 'stripe'
+        payment.status = 'completed'
+        payment.transaction_id = session.payment_intent
+        payment.payment_date = datetime.utcnow()
+        
+        db.session.add(payment)
+        
+        # Desactivar el carrito actual
+        cart.is_active = False
+        
+        db.session.commit()
+        
+        # Obtener la orden con todos los detalles para la respuesta
+        order_data = new_order.serialize()
+        order_items = OrderItem.query.filter_by(order_id=new_order.id).all()
+        order_data['items'] = [item.serialize() for item in order_items]
+        
+        return jsonify({
+            'message': 'Payment confirmed and order created successfully',
+            'order': order_data
+        }), 201
+        
+    except stripe.error.StripeError as e:
+        return jsonify({'message': f'Stripe error: {str(e)}'}), 400
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'message': 'Error creating order'}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Unexpected error: {str(e)}'}), 500 

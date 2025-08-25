@@ -400,14 +400,14 @@ const Category = () => {
                   brand={products[0].brand}
                   rating={products[0].rating?.average || 0}
                   ratingCount={products[0].rating?.count || 0}
-                  imgClass="w-[200px] h-[200px]"
+                  imgClass=""
                 />
               </div>
             </div>
           ) : (
             <>
-              <div className="grid gap-8 gap-y-12 w-full"
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+                          <div className="grid gap-4 sm:gap-6 md:gap-8 gap-y-6 sm:gap-y-8 md:gap-y-12 w-full"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
                 {products.map(product => (
                   <CardItem
                     key={product.id}
@@ -422,7 +422,7 @@ const Category = () => {
                     brand={product.brand}
                     rating={product.rating?.average || 0}
                     ratingCount={product.rating?.count || 0}
-                    imgClass="w-[200px] h-[200px]"
+                    imgClass=""
                   />
                 ))}
               </div>

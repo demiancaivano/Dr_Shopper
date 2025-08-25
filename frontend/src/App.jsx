@@ -27,6 +27,8 @@ import ManageProducts from './pages/ManageProducts';
 import { CartProvider } from './context/CartContext';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCanceled from './pages/PaymentCanceled';
 
 function AppContent() {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
@@ -71,6 +73,12 @@ function AppContent() {
             <Route path="/brand/:brandName" element={<Brand />} />
             <Route path="/search/:query" element={<Search />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/payment-success" element={
+              <ProtectedRoute>
+                <PaymentSuccess />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-canceled" element={<PaymentCanceled />} />
             <Route path="/manage" element={
               <ProtectedRoute requireAdmin={true}>
                 <Manage />

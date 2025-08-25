@@ -51,27 +51,27 @@ const CardItem = ({ id, title, price, final_price, discount_percentage, thumbnai
 
   return (
     <div
-      className={`bg-mariner-100 card-item rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center ${carousel ? 'p-2 min-h-[280px] h-full carousel-mode' : isMinimal ? 'p-3 min-h-[180px] max-h-[220px]' : 'p-4 pb-2 min-h-[450px] md:min-h-[520px] lg:min-h-[500px] 2xl:h-[520px]'} ${isHomeGrid ? 'home-grid-mode' : ''}`}
+      className={`bg-mariner-100 card-item rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center ${carousel ? 'p-2 min-h-[280px] h-full carousel-mode' : isMinimal ? 'p-3 min-h-[180px] max-h-[220px]' : 'p-2 sm:p-3 md:p-4 pb-1 sm:pb-2 min-h-[320px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[480px] 2xl:h-[520px]'} ${isHomeGrid ? 'home-grid-mode' : ''}`}
       style={carousel ? { fontSize: '0.93rem' } : {}}
     >
       <Link to={`/product/${id}`}>
         <img
           src={thumbnail}
           alt={title}
-          className={`carditem-img ${carousel ? 'w-[200px] h-[200px]' : imgClass}`}
-          sizes={carousel ? '200px' : '(max-width: 640px) 250px, 120px'}
+          className={`carditem-img ${carousel ? 'w-[200px] h-[200px]' : 'w-[160px] h-[160px] sm:w-[200px] sm:h-[200px] md:w-[120px] md:h-[120px] lg:w-[120px] lg:h-[120px]'}`}
+          sizes={carousel ? '200px' : '(max-width: 640px) 160px, (max-width: 768px) 200px, 120px'}
         />
       </Link>
       
       {/* Título - altura controlada por CSS */}
-      <div className="flex items-center justify-center w-full mb-2">
-        <h2 className={`font-bold text-mariner-900 text-center ${carousel ? 'text-lg' : 'text-xl'} leading-tight break-words line-clamp-2`}>
+      <div className="flex items-center justify-center w-full mb-1 sm:mb-2">
+        <h2 className={`font-bold text-mariner-900 text-center ${carousel ? 'text-lg' : 'text-lg sm:text-xl'} leading-tight break-words line-clamp-2`}>
           <Link to={`/product/${id}`} className="hover:underline">{title}</Link>
         </h2>
       </div>
 
       {/* Marca - altura fija */}
-      <div className={`${carousel ? 'h-4' : 'h-6'} flex items-center justify-center w-full mb-1`}>
+      <div className={`${carousel ? 'h-4' : 'h-4 sm:h-6'} flex items-center justify-center w-full mb-1`}>
         {brand && (
                       <span className="text-mariner-900 text-sm text-center truncate w-full">
             <Link to={`/brand/${encodeURIComponent(brand)}`} className="hover:underline">
@@ -82,7 +82,7 @@ const CardItem = ({ id, title, price, final_price, discount_percentage, thumbnai
       </div>
 
       {/* Rating - altura fija */}
-      <div className={`${carousel ? 'h-10' : 'h-12'} flex flex-col items-center justify-start w-full mb-2`}>
+      <div className={`${carousel ? 'h-8 sm:h-10' : 'h-8 sm:h-12'} flex flex-col items-center justify-start w-full mb-1 sm:mb-2`}>
         <div className="flex items-center gap-1 mb-1">
           {renderStars(rating)}
         </div>
@@ -96,7 +96,7 @@ const CardItem = ({ id, title, price, final_price, discount_percentage, thumbnai
 
       {/* Descripción - ocupa el espacio restante pero con altura controlada */}
       {showDescription && (
-        <div className={`${carousel ? 'flex-0' : 'flex-1'} flex items-start justify-center w-full mb-4 min-h-0`}>
+        <div className={`${carousel ? 'flex-0' : 'flex-1'} flex items-start justify-center w-full mb-2 sm:mb-4 min-h-0`}>
           <p className={`text-mariner-900 text-center ${carousel ? 'text-sm' : 'text-sm'} overflow-hidden`}>
             {description}
           </p>
@@ -109,19 +109,19 @@ const CardItem = ({ id, title, price, final_price, discount_percentage, thumbnai
           <>
             {/* Precio tachado y descuento en la misma fila */}
             <div className="flex flex-row items-center gap-2 justify-center min-h-0 mb-1">
-              <span className="text-mariner-900 text-center text-lg font-semibold mb-0 line-through opacity-60">€{priceNum.toFixed(2)}</span>
+              <span className="text-mariner-900 text-center text-base sm:text-lg font-semibold mb-0 line-through opacity-60">€{priceNum.toFixed(2)}</span>
               <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded whitespace-nowrap">-{discount_percentage}%</span>
             </div>
             {/* Precio final en línea separada */}
-            <span className="text-red-600 text-center text-xl font-bold mb-0">€{finalPriceNum.toFixed(2)}</span>
+            <span className="text-red-600 text-center text-lg sm:text-xl font-bold mb-0">€{finalPriceNum.toFixed(2)}</span>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full">
-            <span className="text-mariner-900 text-center text-lg font-semibold mb-0 mr-1">€{priceNum.toFixed(2)}</span>
+            <span className="text-mariner-900 text-center text-base sm:text-lg font-semibold mb-0 mr-1">€{priceNum.toFixed(2)}</span>
           </div>
         )}
         {showAddToCart && (
-          <div className="w-full flex justify-center mt-2 mb-1">
+          <div className="w-full flex justify-center mt-1 sm:mt-2 mb-1">
             {inCart ? (
               <button
                 className="flex items-center justify-center gap-2 bg-green-600 text-white px-3 py-1 text-sm rounded-md font-semibold shadow cursor-pointer"

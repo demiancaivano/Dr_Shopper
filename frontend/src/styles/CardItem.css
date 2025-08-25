@@ -80,6 +80,58 @@
         -webkit-line-clamp: 3; /* 3 líneas en mobile */
         line-clamp: 3; /* Propiedad estándar para compatibilidad */
     }
+    
+    /* Reducir altura del título en mobile */
+    .card-item h2 {
+        height: 2.8rem;
+        max-height: 2.8rem;
+        min-height: 2.8rem;
+        line-height: 1.4rem;
+    }
+    
+    /* Reducir altura de la descripción en mobile */
+    .card-item p {
+        max-height: 2rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        line-height: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Reducir altura del rating en mobile */
+    .card-item .h-12 {
+        height: 2rem !important;
+        min-height: 2rem !important;
+    }
+    
+    /* Reducir padding general en mobile */
+    .card-item {
+        padding: 0.75rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+}
+
+/* Optimizaciones adicionales para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .card-item h2 {
+        height: 2.4rem;
+        max-height: 2.4rem;
+        min-height: 2.4rem;
+        line-height: 1.2rem;
+    }
+    
+    .card-item p {
+        max-height: 1.8rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        line-height: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .card-item {
+        padding: 0.5rem !important;
+        padding-bottom: 0.25rem !important;
+    }
 }
 
 .brand-ellipsis {
@@ -100,8 +152,8 @@
   }
 
 .carditem-img {
-  width: 200px;
-  height: 200px;
+  width: 160px;
+  height: 160px;
   max-width: 100%;
   object-fit: cover;
   border-radius: 0.375rem; /* rounded-md */
@@ -110,6 +162,13 @@
 }
 
 @media (min-width: 640px) {
+  .carditem-img {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+@media (min-width: 768px) {
   .carditem-img {
     width: 120px;
     height: 120px;
