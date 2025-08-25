@@ -7,6 +7,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+    // Ensure _redirects file is copied to dist
+    copyPublicDir: true,
   },
   server: {
     port: 5173,
