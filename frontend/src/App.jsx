@@ -8,6 +8,7 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Profile from './pages/Profile';
 import Category from './pages/Category';
+import CategoryRefactored from './pages/CategoryRefactored';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import NotFound from './pages/NotFound';
@@ -69,7 +70,10 @@ function AppContent() {
                 <MyOrders />
               </ProtectedRoute>
             } />
-            <Route path="/category/:categoryName" element={<Category />} />
+            {/* Original Category component */}
+            {/* <Route path="/category/:categoryName" element={<Category />} /> */}
+            {/* Refactored Category component with SOLID principles */}
+            <Route path="/category/:categoryName" element={<CategoryRefactored />} />
             <Route path="/brand/:brandName" element={<Brand />} />
             <Route path="/search/:query" element={<Search />} />
             <Route path="/checkout" element={<Checkout />} />
