@@ -87,12 +87,20 @@ const Profile = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setAddresses(data);
+        // El backend puede devolver una lista directa o un objeto envolviendo la lista.
+        const normalized =
+          Array.isArray(data) ? data :
+          Array.isArray(data?.addresses) ? data.addresses :
+          Array.isArray(data?.data) ? data.data :
+          [];
+        setAddresses(normalized);
       } else {
         setAddressError('Error loading addresses');
+        setAddresses([]);
       }
     } catch (error) {
       setAddressError('Error loading addresses');
+      setAddresses([]);
     } finally {
       setLoadingAddresses(false);
     }
@@ -494,13 +502,13 @@ const Profile = () => {
             <div className="space-y-4">
               {loadingAddresses ? (
                 <div className="text-center py-4">Loading addresses...</div>
-              ) : addresses.length === 0 ? (
+              ) : (Array.isArray(addresses) ? addresses : []).length === 0 ? (
                 <div className="text-center py-8 text-blue-200">
                   <p>No addresses found.</p>
                   <p className="text-sm mt-2">Add your first address to get started.</p>
                 </div>
               ) : (
-                addresses.map((address) => (
+                (Array.isArray(addresses) ? addresses : []).map((address) => (
                   <div key={address.id} className="bg-blue-800 rounded p-4 border border-blue-700">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
