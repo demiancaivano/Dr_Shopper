@@ -12,6 +12,7 @@ from app.__init__ import mail
 from app.utils import generate_token, get_expiration
 from flask_mail import Message
 import os
+import time
 
 # Create the blueprint called 'auth'
 auth = Blueprint('auth', __name__)
@@ -40,6 +41,7 @@ def register():
     - 400: Invalid data or user/email already exists
     """
     try:
+        t0 = time.perf_counter()
         data = request.get_json()
         
         # Validate all required fields are present
@@ -71,7 +73,10 @@ def register():
         
         # Create the new user
         # Evita scrypt (costoso en RAM/CPU en tiers chicos); pbkdf2 es más predecible.
-        hashed_password = generate_password_hash(password, method="pbkdf2:sha256:260000", salt_length=16)
+        # Nota: reducimos iteraciones para no disparar timeouts en Render free/low tiers.
+        t_hash0 = time.perf_counter()
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256:120000", salt_length=16)
+        print(f"[register] password hash ms={(time.perf_counter()-t_hash0)*1000:.1f}")
         new_user = User()
         new_user.username = username
         new_user.email = email
@@ -83,8 +88,10 @@ def register():
         new_user.email_verification_token = verification_token
         new_user.email_verified = False
         
+        t_db0 = time.perf_counter()
         db.session.add(new_user)
         db.session.commit()
+        print(f"[register] db commit ms={(time.perf_counter()-t_db0)*1000:.1f}")
         
         # Send verification email
         try:
@@ -102,8 +109,11 @@ def register():
             print(f"Error sending verification email: {e}")
         
         # Create access tokens
+        t_tok0 = time.perf_counter()
         access_token = create_access_token(identity=str(new_user.id))
         refresh_token = create_refresh_token(identity=str(new_user.id))
+        print(f"[register] token gen ms={(time.perf_counter()-t_tok0)*1000:.1f}")
+        print(f"[register] total ms={(time.perf_counter()-t0)*1000:.1f}")
         
         return jsonify({
             'message': 'User registered successfully. Please check your email to verify your account.',
@@ -114,6 +124,7 @@ def register():
         
     except Exception as e:
         db.session.rollback()
+        print(f"[register] exception: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @auth.route('/auth/login', methods=['POST'])
