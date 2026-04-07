@@ -2,7 +2,7 @@
 # Este archivo inicializa la aplicación Flask y la base de datos.
 # Aquí también se pueden inicializar otras extensiones (como JWT, CORS, etc).
 
-from flask import Flask, request
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -42,42 +42,27 @@ def create_app():
     # Inicializamos Flask-Mail con la app
     mail.init_app(app)
 
-    # Habilitamos CORS para permitir peticiones desde el frontend
-    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-    
-    # Configuración CORS segura para producción
-    if app.config.get('FLASK_ENV') == 'production':
-        # En producción, solo permitir orígenes específicos
-        cors_origins = [frontend_url] if frontend_url else []
-        CORS(
-            app,
-            origins=cors_origins,
-            supports_credentials=True,
-            allow_headers=["Content-Type", "Authorization"],
-            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-        )
+    # CORS
+    # En el navegador, si el origen del frontend no está permitido exactamente,
+    # el backend puede procesar el POST (crear el usuario) pero el browser bloqueará la respuesta.
+    raw_origins = os.environ.get("CORS_ORIGINS", "").strip()
+    if raw_origins:
+        cors_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
     else:
-        # En desarrollo, permitir orígenes locales y de red
+        # Defaults razonables para dev + Render (ajústalos vía CORS_ORIGINS en producción)
         cors_origins = [
-            frontend_url,
-            "http://192.168.30.201:5173",  # IP de red para móvil
-            "http://172.28.160.1:5173",    # Otra IP de red
-            "http://localhost:5173",        # Localhost
-            "http://127.0.0.1:5173",       # Localhost alternativo
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://dr-shopper.onrender.com",
         ]
-        CORS(
-            app,
-            origins=cors_origins,
-            supports_credentials=False,  # Deshabilitar credentials para desarrollo
-            allow_headers=["Content-Type", "Authorization"],
-            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-        )
 
-    # Handler global para responder a las peticiones OPTIONS (preflight)
-    @app.before_request
-    def handle_options():
-        if request.method == 'OPTIONS':
-            return '', 200
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": cors_origins}},
+        supports_credentials=False,
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    )
 
     # Importamos y registramos los blueprints (rutas/endpoints)
     from .routes import register_blueprints
