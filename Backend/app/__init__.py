@@ -30,6 +30,9 @@ def create_app():
     # Cargamos la configuración desde el archivo config.py
     app.config.from_object('app.config.Config')
 
+    # Evita redirects 308 por slash final (los preflight OPTIONS no permiten redirects)
+    app.url_map.strict_slashes = False
+
     # Inicializamos la base de datos con la app
     db.init_app(app)
 
