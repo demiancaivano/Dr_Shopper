@@ -70,7 +70,8 @@ def register():
             return jsonify({'error': 'Email already registered'}), 400
         
         # Create the new user
-        hashed_password = generate_password_hash(password)
+        # Evita scrypt (costoso en RAM/CPU en tiers chicos); pbkdf2 es más predecible.
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256:260000", salt_length=16)
         new_user = User()
         new_user.username = username
         new_user.email = email
