@@ -2,7 +2,7 @@
 # Here we define authentication-related routes (login, register, etc.)
 # We use a 'blueprint' to organize these routes and import them easily in __init__.py
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
@@ -11,6 +11,7 @@ from .models import User, db
 from app.__init__ import mail
 from app.utils import generate_token, get_expiration
 from flask_mail import Message
+import os
 
 # Create the blueprint called 'auth'
 auth = Blueprint('auth', __name__)
@@ -86,13 +87,15 @@ def register():
         
         # Send verification email
         try:
-            verify_url = f"http://localhost:5173/verify-email?token={verification_token}"
-            msg = Message(
-                subject="Verify your email",
-                recipients=[new_user.email],
-                body=f"Welcome to Dr. Shopper! Please verify your email by clicking the following link: {verify_url}"
-            )
-            mail.send(msg)
+            frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+            verify_url = f"{frontend_url}/verify-email?token={verification_token}"
+            if not current_app.config.get("MAIL_SUPPRESS_SEND", False):
+                msg = Message(
+                    subject="Verify your email",
+                    recipients=[new_user.email],
+                    body=f"Welcome to Dr. Shopper! Please verify your email by clicking the following link: {verify_url}"
+                )
+                mail.send(msg)
         except Exception as e:
             # Log error, but don't fail registration
             print(f"Error sending verification email: {e}")
