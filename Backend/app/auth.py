@@ -97,7 +97,9 @@ def register():
         try:
             frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173").rstrip("/")
             verify_url = f"{frontend_url}/verify-email?token={verification_token}"
-            if not current_app.config.get("MAIL_SUPPRESS_SEND", False):
+            suppress = current_app.config.get("MAIL_SUPPRESS_SEND", False)
+            print(f"[register] mail suppress={suppress}", flush=True)
+            if not suppress:
                 msg = Message(
                     subject="Verify your email",
                     recipients=[new_user.email],
@@ -106,14 +108,14 @@ def register():
                 mail.send(msg)
         except Exception as e:
             # Log error, but don't fail registration
-            print(f"Error sending verification email: {e}")
+            print(f"[register] mail exception: {e}", flush=True)
         
         # Create access tokens
         t_tok0 = time.perf_counter()
         access_token = create_access_token(identity=str(new_user.id))
         refresh_token = create_refresh_token(identity=str(new_user.id))
-        print(f"[register] token gen ms={(time.perf_counter()-t_tok0)*1000:.1f}")
-        print(f"[register] total ms={(time.perf_counter()-t0)*1000:.1f}")
+        print(f"[register] token gen ms={(time.perf_counter()-t_tok0)*1000:.1f}", flush=True)
+        print(f"[register] total ms={(time.perf_counter()-t0)*1000:.1f}", flush=True)
         
         return jsonify({
             'message': 'User registered successfully. Please check your email to verify your account.',

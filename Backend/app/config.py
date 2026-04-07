@@ -29,8 +29,12 @@ class Config:
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', MAIL_USERNAME)
-    # Si no hay credenciales en producción, no intentes enviar (evita timeouts del worker)
-    MAIL_SUPPRESS_SEND = os.environ.get('MAIL_SUPPRESS_SEND', '').lower() in ['true', '1', 'yes'] or not (MAIL_USERNAME and MAIL_PASSWORD)
+    # Timeout SMTP (evita cuelgues en despliegues sin salida SMTP)
+    MAIL_TIMEOUT = int(os.environ.get('MAIL_TIMEOUT', 5))
+
+    # En producción/Render, no intentes enviar mails salvo que se habilite explícitamente.
+    ENABLE_EMAILS = os.environ.get('ENABLE_EMAILS', '').lower() in ['true', '1', 'yes']
+    MAIL_SUPPRESS_SEND = (not ENABLE_EMAILS) or not (MAIL_USERNAME and MAIL_PASSWORD)
 
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
     STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
