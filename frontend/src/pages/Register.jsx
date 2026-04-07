@@ -13,6 +13,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
   const { state, register, clearError } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -94,10 +95,9 @@ const Register = () => {
 
     const result = await register(formData.username, formData.email, formData.password);
     if (result.success) {
-      // Show success message if there's one from backend
-      if (result.message) {
-        alert(result.message);
-      }
+      if (result.message) setSuccessMessage(result.message);
+      // Si en el futuro activas verificación real por email, conviene no loguear automáticamente.
+      // Por ahora dejamos el flujo actual: crear usuario -> entrar a home.
       navigate('/');
     }
   };
@@ -115,6 +115,12 @@ const Register = () => {
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md flex flex-col items-center">
         <h1 className="text-2xl font-bold text-black mb-6">Create Account</h1>
         
+        {successMessage && (
+          <div className="w-full mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded">
+            {successMessage}
+          </div>
+        )}
+
         {state.error && (
           <div className="w-full mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {state.error}
